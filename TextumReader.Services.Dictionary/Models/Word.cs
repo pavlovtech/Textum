@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace TextumReader.Services.Dictionary.Models
+namespace TextumReader.Services.Words.Models
 {
     public class Word
     {
@@ -13,12 +13,12 @@ namespace TextumReader.Services.Dictionary.Models
 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string DictionaryId { get; set; }
+        public string UserId { get; set; }
 
         public string DisplayWord { get; set; }
 
         public DateTimeOffset WordCreated { get; set; }
 
-        public IEnumerable<WordTranslation> Translations { get; set; }
+        public IEnumerable<string> Translations { get; set; }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
-using TextumReader.Services.Dictionary.Models;
 using TextumReader.Services.Dictionary.Services;
+using TextumReader.Services.Words.Models;
 
-namespace TextumReader.Services.Dictionary.Controllers
+namespace TextumReader.Services.Words.Controllers
 {
     [Route("words")]
     [ApiController]
@@ -17,17 +17,17 @@ namespace TextumReader.Services.Dictionary.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Word>> Get() => _wordsService.GetWords();
+        public ActionResult<List<Word>> GetByUser(string userId)
+        {
+            return _wordsService.GetWords(userId);
+        }
 
         [HttpGet("{id:length(24)}", Name = "words")]
-        public ActionResult<Word> Get(string id)
+        public ActionResult<Word> GetById(string id)
         {
             var word = _wordsService.GetWord(id);
 
-            if (word == null)
-            {
-                return NotFound();
-            }
+            if (word == null) return NotFound();
 
             return word;
         }
@@ -37,7 +37,7 @@ namespace TextumReader.Services.Dictionary.Controllers
         {
             _wordsService.Create(word);
 
-            return CreatedAtRoute("words", new { id = word.Id }, word);
+            return CreatedAtRoute("words", new {id = word.Id}, word);
         }
 
         [HttpPut("{id:length(24)}")]
@@ -45,10 +45,7 @@ namespace TextumReader.Services.Dictionary.Controllers
         {
             var oldWord = _wordsService.GetWord(id);
 
-            if (oldWord == null)
-            {
-                return NotFound();
-            }
+            if (oldWord == null) return NotFound();
 
             _wordsService.Update(id, word);
 
@@ -60,10 +57,7 @@ namespace TextumReader.Services.Dictionary.Controllers
         {
             var word = _wordsService.GetWord(id);
 
-            if (word == null)
-            {
-                return NotFound();
-            }
+            if (word == null) return NotFound();
 
             _wordsService.Remove(word.Id);
 

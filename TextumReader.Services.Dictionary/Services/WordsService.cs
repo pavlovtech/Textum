@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using TextumReader.Services.Dictionary.Models;
-using TextumReader.Services.Dictionary.Settings;
+using TextumReader.Services.Words.Models;
+using TextumReader.Services.Words.Settings;
 
 namespace TextumReader.Services.Dictionary.Services
 {
@@ -18,7 +18,7 @@ namespace TextumReader.Services.Dictionary.Services
             var client = new MongoClient(_options.ConnectionString);
             var database = client.GetDatabase(_options.DatabaseName);
 
-            _words = database.GetCollection<Word>(_options.WordsCollectionName);
+            _words = database.GetCollection<Word>(_options.CollectionName);
         }
 
         public List<Word> GetWords()
@@ -26,9 +26,9 @@ namespace TextumReader.Services.Dictionary.Services
             return _words.Find(word => true).ToList();
         }
 
-        public List<Word> GetWords(string dictionaryId)
+        public List<Word> GetWords(string userId)
         {
-            return _words.Find(word => word.DictionaryId == dictionaryId).ToList();
+            return _words.Find(word => word.UserId == userId).ToList();
         }
 
         public Word GetWord(string wordId)

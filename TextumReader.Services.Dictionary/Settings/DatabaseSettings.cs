@@ -1,9 +1,8 @@
-﻿namespace TextumReader.Services.Dictionary.Settings
+﻿namespace TextumReader.Services.Words.Settings
 {
     public class DatabaseSettings
     {
-        public string DictionariesCollectionName { get; set; }
-        public string WordsCollectionName { get; set; }
+        public string CollectionName { get; set; }
         public string ConnectionString { get; set; }
         public string DatabaseName { get; set; }
     }
