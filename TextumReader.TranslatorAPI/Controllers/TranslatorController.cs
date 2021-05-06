@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ namespace TextumReader.Services.Translator.Controllers
 {
     [ApiController]
     [Route("translator")]
+    [Authorize("read:translations")]
     public class TranslatorController : ControllerBase
     {
         private readonly ILogger<TranslatorController> _logger;
