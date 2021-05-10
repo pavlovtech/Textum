@@ -17,12 +17,17 @@ namespace TextumReader.Services.TextMaterial.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Text>> Get() => _textService.Get();
+        public ActionResult<List<Text>> GetByUserId()
+        {
+            var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
+
+            return _textService.GetByUserId(currentUserId);
+        }
 
         [HttpGet("{id:length(24)}", Name = "texts")]
-        public ActionResult<Text> Get(string id)
+        public ActionResult<Text> GetByBookId(string id)
         {
-            var book = _textService.Get(id);
+            var book = _textService.GetByBookId(id);
 
             if (book == null)
             {
@@ -43,7 +48,7 @@ namespace TextumReader.Services.TextMaterial.Controllers
         [HttpPut("{id:length(24)}")]
         public IActionResult Update(string id, Text text)
         {
-            var book = _textService.Get(id);
+            var book = _textService.GetByBookId(id);
 
             if (book == null)
             {
@@ -58,7 +63,7 @@ namespace TextumReader.Services.TextMaterial.Controllers
         [HttpDelete("{id:length(24)}")]
         public IActionResult Delete(string id)
         {
-            var book = _textService.Get(id);
+            var book = _textService.GetByBookId(id);
 
             if (book == null)
             {

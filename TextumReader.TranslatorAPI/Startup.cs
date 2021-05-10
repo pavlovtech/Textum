@@ -1,17 +1,12 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using TextumReader.Services.Translator.Security;
 
 namespace TextumReader.Services.Translator
 {
@@ -39,38 +34,6 @@ namespace TextumReader.Services.Translator
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy(name: allowSpecificOrigins,
-                    builder =>
-                    {
-                        builder.AllowAnyOrigin()
-                            .AllowAnyMethod()
-                            .AllowAnyHeader();
-                    });
-            });
-
-            string domain = $"https://{Configuration["Auth0:Domain"]}/";
-            services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.Authority = domain;
-                    options.Audience = Configuration["Auth0:Audience"];
-                    // If the access token does not have a `sub` claim, `User.Identity.Name` will be `null`. Map it to a different claim by setting the NameClaimType below.
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        NameClaimType = ClaimTypes.NameIdentifier
-                    };
-                });
-
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("read:translations", policy => policy.Requirements.Add(new HasScopeRequirement("read:translations", domain)));
-            });
-
-            services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -88,9 +51,6 @@ namespace TextumReader.Services.Translator
             app.UseRouting();
 
             app.UseCors(allowSpecificOrigins);
-
-            app.UseAuthentication();
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

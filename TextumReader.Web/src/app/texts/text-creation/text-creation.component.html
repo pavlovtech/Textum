@@ -1,0 +1,19 @@
+<h1>Create a text</h1>
+<form class="text-form">
+    <mat-form-field class="full-width">
+      <mat-label>Text name</mat-label>
+      <input matInput>
+    </mat-form-field>
+  
+    <mat-form-field class="full-width">
+      <mat-label>Text description</mat-label>
+      <textarea cdkTextareaAutosize matInput></textarea>
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+        <mat-label>Text</mat-label>
+        <textarea cdkTextareaAutosize matInput></textarea>
+    </mat-form-field>
+
+    <button mat-raised-button (click)="onSaveButtonClicked()">Save</button>
+  </form>

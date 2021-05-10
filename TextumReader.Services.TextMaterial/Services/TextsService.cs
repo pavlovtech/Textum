@@ -20,12 +20,12 @@ namespace TextumReader.Services.TextMaterial.Services
             _texts = database.GetCollection<Text>(_options.CollectionName);
         }
 
-        public List<Text> Get()
+        public List<Text> GetByUserId(string userId)
         {
-            return _texts.Find(book => true).ToList();
+            return _texts.Find(book => book.UserId == userId).ToList();
         }
 
-        public Text Get(string id)
+        public Text GetByBookId(string id)
         {
             return _texts.Find(book => book.Id == id).FirstOrDefault();
         }

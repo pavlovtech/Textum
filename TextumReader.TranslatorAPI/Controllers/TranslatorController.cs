@@ -17,7 +17,7 @@ namespace TextumReader.Services.Translator.Controllers
 {
     [ApiController]
     [Route("translator")]
-    [Authorize("read:translations")]
+    //[Authorize("read:translations")]
     public class TranslatorController : ControllerBase
     {
         private readonly ILogger<TranslatorController> _logger;
@@ -48,6 +48,8 @@ namespace TextumReader.Services.Translator.Controllers
         [HttpPost("word-translation")]
         public async Task<WordTranslationsDto> GetWordTranslation(TranslationRequest translationRequest)
         {
+            _logger.LogDebug(new EventId(1, "1"), HttpContext.Request.Headers["CurrentUser"][0]);
+
             // See many translation options
             string route = $"/dictionary/lookup?api-version=3.0&from={translationRequest.From}&to={translationRequest.To}";
             string wordToTranslate = translationRequest.Text;

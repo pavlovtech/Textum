@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -6,8 +7,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Ocelot.Authorization;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using TextumReader.Gateway.Security;
@@ -29,6 +32,8 @@ namespace TextumReader.Gateway
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
             services.AddCors(options =>
             {
                 options.AddPolicy(name: allowSpecificOrigins,
@@ -40,10 +45,12 @@ namespace TextumReader.Gateway
                     });
             });
 
+            var authenticationProviderKey = "Auth0";
+
             string domain = $"https://{Configuration["Auth0:Domain"]}/";
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+                .AddJwtBearer(authenticationProviderKey, options =>
                 {
                     options.Authority = domain;
                     options.Audience = Configuration["Auth0:Audience"];
@@ -54,12 +61,8 @@ namespace TextumReader.Gateway
                     };
                 });
 
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("read:translations", policy => policy.Requirements.Add(new HasScopeRequirement("read:translations", domain)));
-            });
-
-            services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+            services.RemoveAll<IScopesAuthorizer>();
+            services.TryAddSingleton<IScopesAuthorizer, DelimitedScopesAuthorizer>();
 
             services.AddOcelot();
         }
@@ -72,6 +75,7 @@ namespace TextumReader.Gateway
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(allowSpecificOrigins);
             app.UseAuthentication();
             app.UseAuthorization();
 

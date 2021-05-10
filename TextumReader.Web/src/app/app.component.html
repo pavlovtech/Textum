@@ -1,0 +1,17 @@
+<header class="p-3 bg-dark text-white">
+    <div class="container">
+      <div class="d-flex align-items-center">
+        <p class="flex-shrink-0 mb-0">Textum Reader</p>
+        <ul class="nav flex-grow-1 mb-2 justify-content-end mb-md-0">
+            <li><a routerLink="/texts" class="nav-link px-2" routerLinkActive="active">Texts</a></li>
+            <li><a routerLink="/words" class="nav-link px-2" routerLinkActive="active">Words</a></li>
+        </ul>
+        <tr-auth-button class="flex-shrink-0"></tr-auth-button>
+      </div>
+    </div>
+</header>
+<main class="container">
+    <div class="col-md-10 pt-2">
+        <router-outlet></router-outlet>
+    </div>
+</main>
