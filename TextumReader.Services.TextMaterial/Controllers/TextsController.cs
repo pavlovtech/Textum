@@ -16,16 +16,16 @@ namespace TextumReader.Services.TextMaterial.Controllers
             _textService = textService;
         }
 
-        [HttpGet]
-        public ActionResult<List<Text>> GetByUserId()
+        [HttpGet(Name = nameof(GetTexts))]
+        public ActionResult<List<Text>> GetTexts()
         {
             var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
 
             return _textService.GetByUserId(currentUserId);
         }
 
-        [HttpGet("{id:length(24)}", Name = "texts")]
-        public ActionResult<Text> GetByBookId(string id)
+        [HttpGet("{id:length(24)}", Name = nameof(GetTextById))]
+        public ActionResult<Text> GetTextById(string id)
         {
             var book = _textService.GetByBookId(id);
 
@@ -37,16 +37,19 @@ namespace TextumReader.Services.TextMaterial.Controllers
             return book;
         }
 
-        [HttpPost]
-        public ActionResult<Text> Create(Text book)
+        [HttpPost(Name = nameof(CreateText))]
+        public ActionResult<Text> CreateText(Text text)
         {
-            _textService.Create(book);
+            var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
 
-            return CreatedAtRoute("texts", new { id = book.Id }, book);
+            text.UserId = currentUserId;
+            _textService.Create(text);
+
+            return CreatedAtRoute(nameof(GetTextById), new { id = text.Id }, text);
         }
 
-        [HttpPut("{id:length(24)}")]
-        public IActionResult Update(string id, Text text)
+        [HttpPut("{id:length(24)}", Name = nameof(UpdateText))]
+        public IActionResult UpdateText(string id, Text text)
         {
             var book = _textService.GetByBookId(id);
 
@@ -60,8 +63,8 @@ namespace TextumReader.Services.TextMaterial.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id:length(24)}")]
-        public IActionResult Delete(string id)
+        [HttpDelete("{id:length(24)}", Name = nameof(DeleteText))]
+        public IActionResult DeleteText(string id)
         {
             var book = _textService.GetByBookId(id);
 

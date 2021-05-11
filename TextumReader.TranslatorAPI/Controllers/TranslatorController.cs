@@ -45,7 +45,7 @@ namespace TextumReader.Services.Translator.Controllers
         ///     }
         ///
         /// </remarks>
-        [HttpPost("word-translation")]
+        [HttpPost("word-translation", Name = nameof(GetWordTranslation))]
         public async Task<WordTranslationsDto> GetWordTranslation(TranslationRequest translationRequest)
         {
             _logger.LogDebug(new EventId(1, "1"), HttpContext.Request.Headers["CurrentUser"][0]);
@@ -78,7 +78,7 @@ namespace TextumReader.Services.Translator.Controllers
             };
         }
 
-        [HttpPost("word-examples")]
+        [HttpPost("word-examples", Name = nameof(GetExamples))]
         public async Task<IEnumerable<string>> GetExamples(WordExampleRequest wordExampleRequest)
         {
             // See examples of terms in context
@@ -93,7 +93,7 @@ namespace TextumReader.Services.Translator.Controllers
             return json[0]["examples"].Select(e => $"{e["sourcePrefix"]}{e["sourceTerm"]}{e["sourceSuffix"]}");
         }
 
-        [HttpPost("text-translation")]
+        [HttpPost("text-translation", Name = nameof(GetTextTranslation))]
         public async Task<TextTranslationDto> GetTextTranslation(TranslationRequest translationRequest)
         {
             // Input and output languages are defined as parameters.

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using TextumReader.Services.TextMaterial.Models;
 
 namespace TextumReader.Services.TextMaterial.Services
@@ -22,7 +23,7 @@ namespace TextumReader.Services.TextMaterial.Services
 
         public List<Text> GetByUserId(string userId)
         {
-            return _texts.Find(book => book.UserId == userId).ToList();
+            return _texts.AsQueryable().Where(book => book.UserId == userId).ToList();
         }
 
         public Text GetByBookId(string id)
@@ -39,11 +40,6 @@ namespace TextumReader.Services.TextMaterial.Services
         public void Update(string id, Text text)
         {
             _texts.ReplaceOne(book => book.Id == id, text);
-        }
-
-        public void Remove(Text text)
-        {
-            _texts.DeleteOne(book => book.Id == text.Id);
         }
 
         public void Remove(string id)

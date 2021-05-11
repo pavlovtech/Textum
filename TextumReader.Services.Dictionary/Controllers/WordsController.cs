@@ -16,14 +16,16 @@ namespace TextumReader.Services.Words.Controllers
             _wordsService = wordsService;
         }
 
-        [HttpGet]
-        public ActionResult<List<Word>> GetByUser(string userId)
+        [HttpGet(Name = nameof(GetWords))]
+        public ActionResult<List<Word>> GetWords()
         {
-            return _wordsService.GetWords(userId);
+            var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
+
+            return _wordsService.GetWords(currentUserId);
         }
 
-        [HttpGet("{id:length(24)}", Name = "words")]
-        public ActionResult<Word> GetById(string id)
+        [HttpGet("{id:length(24)}", Name = nameof(GetWordById))]
+        public ActionResult<Word> GetWordById(string id)
         {
             var word = _wordsService.GetWord(id);
 
@@ -32,16 +34,16 @@ namespace TextumReader.Services.Words.Controllers
             return word;
         }
 
-        [HttpPost]
-        public ActionResult<Word> Create(Word word)
+        [HttpPost(Name = nameof(CreateWord))]
+        public ActionResult<Word> CreateWord(Word word)
         {
             _wordsService.Create(word);
 
-            return CreatedAtRoute("words", new {id = word.Id}, word);
+            return CreatedAtRoute(nameof(GetWordById), new {id = word.Id}, word);
         }
 
-        [HttpPut("{id:length(24)}")]
-        public IActionResult Update(string id, Word word)
+        [HttpPut("{id:length(24)}", Name = nameof(UpdateWord))]
+        public IActionResult UpdateWord(string id, Word word)
         {
             var oldWord = _wordsService.GetWord(id);
 
@@ -52,8 +54,8 @@ namespace TextumReader.Services.Words.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id:length(24)}")]
-        public IActionResult Delete(string id)
+        [HttpDelete("{id:length(24)}", Name = nameof(DeleteWord))]
+        public IActionResult DeleteWord(string id)
         {
             var word = _wordsService.GetWord(id);
 

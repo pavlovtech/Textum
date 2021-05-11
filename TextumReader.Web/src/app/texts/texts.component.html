@@ -1,19 +1,20 @@
 <button class="mb-3" mat-raised-button color="primary" routerLink="/texts/create" routerLinkActive="active">Create</button>
-<!-- <a routerLink="/texts/create" class="nav-link px-2" routerLinkActive="active">Create</a> -->
 
-<p-table [value]="texts" [autoLayout]="true">
-    <ng-template pTemplate="header">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Actions</th>
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-text>
-        <tr>
-            <td>{{ text.name }}</td>
-            <td>{{ text.description }}</td>
-            <td></td>
-        </tr>
-    </ng-template>
-</p-table>
+<ng-container *ngIf="texts$ | async as texts" >
+    <p-table [value]="texts" [autoLayout]="true">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Name</th>
+                <th>Language</th>
+                <th>Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-text>
+            <tr>
+                <td>{{ text.title }}</td>
+                <td>{{ text.inputLanguage }}</td>
+                <td></td>
+            </tr>
+        </ng-template>
+    </p-table>
+</ng-container>

@@ -1,19 +1,19 @@
 <h1>Create a text</h1>
-<form class="text-form">
+<form class="text-form" [formGroup]="textForm" (ngSubmit)="onSubmit()">
     <mat-form-field class="full-width">
       <mat-label>Text name</mat-label>
-      <input matInput>
+      <input matInput formControlName="textName">
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Input language</mat-label>
+      <input matInput formControlName="inputLanguage">
     </mat-form-field>
   
     <mat-form-field class="full-width">
-      <mat-label>Text description</mat-label>
-      <textarea cdkTextareaAutosize matInput></textarea>
-    </mat-form-field>
-
-    <mat-form-field class="full-width">
         <mat-label>Text</mat-label>
-        <textarea cdkTextareaAutosize matInput></textarea>
+        <textarea cdkTextareaAutosize matInput formControlName="text"></textarea>
     </mat-form-field>
 
-    <button mat-raised-button (click)="onSaveButtonClicked()">Save</button>
+    <button mat-raised-button type="submit" [disabled]="!textForm.valid">Save</button>
   </form>
