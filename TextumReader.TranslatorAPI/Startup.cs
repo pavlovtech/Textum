@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using TextumReader.Services.Translator.Services;
 
 namespace TextumReader.Services.Translator
 {
@@ -34,6 +35,8 @@ namespace TextumReader.Services.Translator
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
+            services.AddScoped<ITranslator, YandexTranslator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

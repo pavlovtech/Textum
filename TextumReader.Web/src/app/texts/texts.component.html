@@ -1,4 +1,4 @@
-<button class="mb-3" mat-raised-button color="primary" routerLink="/texts/create" routerLinkActive="active">Create</button>
+<button class="mb-3" mat-raised-button color="primary"  routerLink="/texts/create" routerLinkActive="active">Create</button>
 
 <ng-container *ngIf="texts$ | async as texts" >
     <p-table [value]="texts" [autoLayout]="true">
@@ -11,7 +11,7 @@
         </ng-template>
         <ng-template pTemplate="body" let-text>
             <tr>
-                <td>{{ text.title }}</td>
+                <td><a [routerLink]="['/texts', text.id]" routerLinkActive="active">{{ text.title }}</a></td>
                 <td>{{ text.inputLanguage }}</td>
                 <td></td>
             </tr>
