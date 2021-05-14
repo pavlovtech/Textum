@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using TextumReader.Services.Translator.Models.Requests;
-using TextumReader.Services.Translator.Models.Responses;
+using TextumReader.Services.Translator.DTO.Requests;
+using TextumReader.Services.Translator.DTO.Responses;
 using TextumReader.Services.Translator.Services;
 
 namespace TextumReader.Services.Translator.Controllers
@@ -40,22 +40,22 @@ namespace TextumReader.Services.Translator.Controllers
         ///     }
         ///
         /// </remarks>
-        [HttpPost("word-translation", Name = nameof(GetWordTranslation))]
-        public async Task<WordTranslationsDto> GetWordTranslation(TranslationRequest translationRequest)
+        [HttpGet("word-translation", Name = nameof(GetWordTranslation))]
+        public async Task<WordTranslationsDto> GetWordTranslation([FromQuery]string from, [FromQuery]string to, [FromQuery]string text)
         {
-            return await _translator.GetWordTranslation(translationRequest);
+            return await _translator.GetWordTranslation(from, to, text);
         }
 
-        [HttpPost("word-examples", Name = nameof(GetExamples))]
-        public async Task<IEnumerable<string>> GetExamples(WordExampleRequest wordExampleRequest)
+        [HttpGet("word-examples", Name = nameof(GetExamples))]
+        public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
         {
-            return await _translator.GetExamples(wordExampleRequest);
+            return await _translator.GetExamples(from, to, text, translation);
         }
 
         [HttpPost("text-translation", Name = nameof(GetTextTranslation))]
         public async Task<TextTranslationDto> GetTextTranslation(TranslationRequest translationRequest)
         {
-            return await _translator.GetTextTranslation(translationRequest);
+            return await _translator.GetTextTranslation(translationRequest.From, translationRequest.To, translationRequest.Text);
         }
     }
 }

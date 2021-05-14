@@ -12,8 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using RestSharp.Authenticators;
-using TextumReader.Services.Translator.Models.Requests;
-using TextumReader.Services.Translator.Models.Responses;
+using TextumReader.Services.Translator.DTO.Responses;
 
 namespace TextumReader.Services.Translator.Services
 {
@@ -28,10 +27,10 @@ namespace TextumReader.Services.Translator.Services
             _env = env;
         }
 
-        public async Task<WordTranslationsDto> GetWordTranslation(TranslationRequest translationRequest)
+        public async Task<WordTranslationsDto> GetWordTranslation(string from, string to, string text)
         {
             // See many translation options
-            string route = $"{_url}?key={_key}&lang={translationRequest.From}-{translationRequest.From}&text={translationRequest.Text}";
+            string route = $"{_url}?key={_key}&lang={from}-{to}&text={text}";
 
             var client = new RestClient(_url);
 
@@ -40,9 +39,9 @@ namespace TextumReader.Services.Translator.Services
                 client.Proxy = new WebProxy(new Uri("https://209.127.191.180:9279"));
             }
 
-            var request = new RestRequest($"?key={_key}&lang={translationRequest.From}-{translationRequest.From}&text={translationRequest.Text}", DataFormat.Json);
+            var request = new RestRequest($"?key={_key}&lang={from}-{to}&text={text}", DataFormat.Json);
 
-            var response = client.Get(request);
+            var response = await client.ExecuteAsync(request);
 
             var json = JArray.Parse(response.Content);
 
@@ -58,17 +57,17 @@ namespace TextumReader.Services.Translator.Services
 
             return new WordTranslationsDto
             {
-                Word = translationRequest.Text,
+                Word = text,
                 Translations = translations
             };
         }
 
-        public async Task<IEnumerable<string>> GetExamples(WordExampleRequest wordExampleRequest)
+        public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<TextTranslationDto> GetTextTranslation(TranslationRequest translationRequest)
+        public async Task<TextTranslationDto> GetTextTranslation(string from, string to, string text)
         {
             throw new NotImplementedException();
         }

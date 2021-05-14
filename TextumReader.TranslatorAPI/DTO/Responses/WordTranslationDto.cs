@@ -1,4 +1,4 @@
-﻿namespace TextumReader.Services.Translator.Models.Responses
+﻿namespace TextumReader.Services.Translator.DTO.Responses
 {
     public class WordTranslationDto
     {

@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using TextumReader.Services.Translator.Models.Requests;
-using TextumReader.Services.Translator.Models.Responses;
+using TextumReader.Services.Translator.DTO.Responses;
 
 namespace TextumReader.Services.Translator.Services
 {
@@ -18,6 +17,8 @@ namespace TextumReader.Services.Translator.Services
         private readonly string _endpoint;
         private readonly string _location;
 
+        private static readonly HttpClient HttpClient = new HttpClient();
+        
         public CognitiveServicesTranslator(IConfiguration configuration)
         {
             _subscriptionKey = configuration["AzureSubscriptionKey"];
@@ -25,11 +26,11 @@ namespace TextumReader.Services.Translator.Services
             _endpoint = configuration["AzureTranslatorEndpoint"];
         }
 
-        public async Task<WordTranslationsDto> GetWordTranslation(TranslationRequest translationRequest)
+        public async Task<WordTranslationsDto> GetWordTranslation(string from, string to, string text)
         {
             // See many translation options
-            string route = $"/dictionary/lookup?api-version=3.0&from={translationRequest.From}&to={translationRequest.To}";
-            string wordToTranslate = translationRequest.Text;
+            string route = $"/dictionary/lookup?api-version=3.0&from={from}&to={to}";
+            string wordToTranslate = text;
             object[] body = { new { Text = wordToTranslate } };
             var requestBody = JsonConvert.SerializeObject(body);
 
@@ -55,11 +56,11 @@ namespace TextumReader.Services.Translator.Services
             };
         }
 
-        public async Task<IEnumerable<string>> GetExamples(WordExampleRequest wordExampleRequest)
+        public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
         {
             // See examples of terms in context
-            string route = $"/dictionary/examples?api-version=3.0&from={wordExampleRequest.From}&to={wordExampleRequest.To}";
-            object[] body = { new { Text = wordExampleRequest.Text, Translation = wordExampleRequest.Translation } };
+            string route = $"/dictionary/examples?api-version=3.0&from={from}&to={to}";
+            object[] body = { new { Text = text, Translation = translation } };
             var requestBody = JsonConvert.SerializeObject(body);
 
             string result = await SendTranslationRequest(route, requestBody);
@@ -69,11 +70,11 @@ namespace TextumReader.Services.Translator.Services
             return json[0]["examples"].Select(e => $"{e["sourcePrefix"]}{e["sourceTerm"]}{e["sourceSuffix"]}");
         }
 
-        public async Task<TextTranslationDto> GetTextTranslation(TranslationRequest translationRequest)
+        public async Task<TextTranslationDto> GetTextTranslation(string from, string to, string text)
         {
             // Input and output languages are defined as parameters.
-            string route = $"/translate?api-version=3.0&from={translationRequest.From}&to={translationRequest.To}";
-            string textToTranslate = translationRequest.Text;
+            string route = $"/translate?api-version=3.0&from={from}&to={to}";
+            string textToTranslate = text;
             object[] body = { new { Text = textToTranslate } };
             var requestBody = JsonConvert.SerializeObject(body);
 
@@ -81,7 +82,7 @@ namespace TextumReader.Services.Translator.Services
 
             var json = JArray.Parse(result);
 
-            var translation = json[0]["translations"][0]["text"].ToString();
+            var translation = json[0]["translations"]?[0]["text"]?.ToString();
 
             return new TextTranslationDto
             {
@@ -91,7 +92,6 @@ namespace TextumReader.Services.Translator.Services
 
         private async Task<string> SendTranslationRequest(string route, string requestBody)
         {
-            using var client = new HttpClient();
             using var request = new HttpRequestMessage();
             // Build the request.
             request.Method = HttpMethod.Post;
@@ -101,7 +101,7 @@ namespace TextumReader.Services.Translator.Services
             request.Headers.Add("Ocp-Apim-Subscription-Region", _location);
 
             // Send the request and get response.
-            HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
+            var response = await HttpClient.SendAsync(request).ConfigureAwait(false);
             // Read response as a string.
             string result = await response.Content.ReadAsStringAsync();
             return result;

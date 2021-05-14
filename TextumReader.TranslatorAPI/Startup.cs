@@ -37,6 +37,8 @@ namespace TextumReader.Services.Translator
             });
 
             services.AddScoped<ITranslator, YandexTranslator>();
+
+            services.AddResponseCaching();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +61,8 @@ namespace TextumReader.Services.Translator
             {
                 endpoints.MapControllers();
             });
+
+            app.UseResponseCaching();
         }
     }
 }

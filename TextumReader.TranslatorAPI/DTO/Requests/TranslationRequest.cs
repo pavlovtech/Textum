@@ -1,4 +1,4 @@
-﻿namespace TextumReader.Services.Translator.Models.Requests
+﻿namespace TextumReader.Services.Translator.DTO.Requests
 {
     public class TranslationRequest
     {
