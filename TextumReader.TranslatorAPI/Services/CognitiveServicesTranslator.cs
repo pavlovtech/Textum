@@ -26,7 +26,7 @@ namespace TextumReader.Services.Translator.Services
             _endpoint = configuration["AzureTranslatorEndpoint"];
         }
 
-        public async Task<WordTranslationsDto> GetWordTranslation(string from, string to, string text)
+        public async Task<WordTranslations> GetWordTranslation(string from, string to, string text)
         {
             // See many translation options
             string route = $"/dictionary/lookup?api-version=3.0&from={from}&to={to}";
@@ -42,18 +42,11 @@ namespace TextumReader.Services.Translator.Services
 
             var translationNodes = (JArray)json[0]["translations"];
 
-            IList<WordTranslationDto> translations = translationNodes.Select(t => new WordTranslationDto
-            {
-                Translation = (string)t["displayTarget"],
-                PartOfSpeech = (string)t["posTag"],
-            }).ToList();
+            var translations = translationNodes.Select(t =>
+                new WordTranslation((string) t["displayTarget"], (string) t["posTag"]));
 
 
-            return new WordTranslationsDto
-            {
-                Word = word,
-                Translations = translations
-            };
+            return new WordTranslations(text, translations);
         }
 
         public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
@@ -70,7 +63,7 @@ namespace TextumReader.Services.Translator.Services
             return json[0]["examples"].Select(e => $"{e["sourcePrefix"]}{e["sourceTerm"]}{e["sourceSuffix"]}");
         }
 
-        public async Task<TextTranslationDto> GetTextTranslation(string from, string to, string text)
+        public async Task<TextTranslation> GetTextTranslation(string from, string to, string text)
         {
             // Input and output languages are defined as parameters.
             string route = $"/translate?api-version=3.0&from={from}&to={to}";
@@ -84,10 +77,7 @@ namespace TextumReader.Services.Translator.Services
 
             var translation = json[0]["translations"]?[0]["text"]?.ToString();
 
-            return new TextTranslationDto
-            {
-                Translation = translation
-            };
+            return new TextTranslation(translation);
         }
 
         private async Task<string> SendTranslationRequest(string route, string requestBody)

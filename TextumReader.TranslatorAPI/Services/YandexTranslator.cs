@@ -6,12 +6,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
-using RestSharp.Authenticators;
 using TextumReader.Services.Translator.DTO.Responses;
 
 namespace TextumReader.Services.Translator.Services
@@ -27,7 +24,7 @@ namespace TextumReader.Services.Translator.Services
             _env = env;
         }
 
-        public async Task<WordTranslationsDto> GetWordTranslation(string from, string to, string text)
+        public async Task<WordTranslations> GetWordTranslation(string from, string to, string text)
         {
             // See many translation options
             string route = $"{_url}?key={_key}&lang={from}-{to}&text={text}";
@@ -48,18 +45,10 @@ namespace TextumReader.Services.Translator.Services
 
             var translationNodes = (JArray)json["def"];
 
-            IList<WordTranslationDto> translations = translationNodes.Select(t => t["tr"]).Select(t => new WordTranslationDto
-            {
-                Translation = (string)t["text"],
-                PartOfSpeech = (string)t["pos"],
-            }).ToList();
+            IList<WordTranslation> translations = translationNodes.Select(t => t["tr"]).Select(t => new WordTranslation((string)t["text"], (string)t["pos"])).ToList();
 
 
-            return new WordTranslationsDto
-            {
-                Word = text,
-                Translations = translations
-            };
+            return new WordTranslations(text, translations);
         }
 
         public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
@@ -67,7 +56,7 @@ namespace TextumReader.Services.Translator.Services
             throw new NotImplementedException();
         }
 
-        public async Task<TextTranslationDto> GetTextTranslation(string from, string to, string text)
+        public async Task<TextTranslation> GetTextTranslation(string from, string to, string text)
         {
             throw new NotImplementedException();
         }

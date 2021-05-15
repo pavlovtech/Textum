@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using TextumReader.Services.Translator.DTO.Requests;
 using TextumReader.Services.Translator.DTO.Responses;
 using TextumReader.Services.Translator.Services;
 
@@ -16,7 +9,6 @@ namespace TextumReader.Services.Translator.Controllers
 {
     [ApiController]
     [Route("translator")]
-    //[Authorize("read:translations")]
     public class TranslatorController : ControllerBase
     {
         private readonly ITranslator _translator;
@@ -41,19 +33,19 @@ namespace TextumReader.Services.Translator.Controllers
         ///
         /// </remarks>
         [HttpGet("word-translation", Name = nameof(GetWordTranslation))]
-        public async Task<WordTranslationsDto> GetWordTranslation([FromQuery]string from, [FromQuery]string to, [FromQuery]string text)
+        public async Task<WordTranslations> GetWordTranslation([FromQuery]string from, [FromQuery]string to, [FromQuery]string text)
         {
             return await _translator.GetWordTranslation(from, to, text);
         }
 
         [HttpGet("word-examples", Name = nameof(GetExamples))]
-        public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
+        public async Task<IEnumerable<string>> GetExamples([FromQuery] string from, [FromQuery] string to, [FromQuery] string text, [FromQuery] string translation)
         {
             return await _translator.GetExamples(from, to, text, translation);
         }
 
         [HttpPost("text-translation", Name = nameof(GetTextTranslation))]
-        public async Task<TextTranslationDto> GetTextTranslation(TranslationRequest translationRequest)
+        public async Task<TextTranslation> GetTextTranslation(TranslationRequest translationRequest)
         {
             return await _translator.GetTextTranslation(translationRequest.From, translationRequest.To, translationRequest.Text);
         }

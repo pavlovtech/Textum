@@ -28,40 +28,50 @@ export class TranslatorClient {
     }
 
     /**
-     * @param body (optional) 
+     * @param from (optional) 
+     * @param to (optional) 
+     * @param text (optional) 
      * @return Success
      */
-    getWordTranslation(body: TranslationRequest | undefined): Observable<WordTranslationsDto> {
-        let url_ = this.baseUrl + "/translator/word-translation";
+    getWordTranslation(from: string | undefined, to: string | undefined, text: string | undefined): Observable<WordTranslations> {
+        let url_ = this.baseUrl + "/translator/word-translation?";
+        if (from === null)
+            throw new Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "from=" + encodeURIComponent("" + from) + "&";
+        if (to === null)
+            throw new Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "to=" + encodeURIComponent("" + to) + "&";
+        if (text === null)
+            throw new Error("The parameter 'text' cannot be null.");
+        else if (text !== undefined)
+            url_ += "text=" + encodeURIComponent("" + text) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(body);
-
         let options_ : any = {
-            body: content_,
             observe: "response",
             responseType: "blob",
             headers: new HttpHeaders({
-                "Content-Type": "application/json",
                 "Accept": "text/plain"
             })
         };
 
-        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
             return this.processGetWordTranslation(response_);
         })).pipe(_observableCatch((response_: any) => {
             if (response_ instanceof HttpResponseBase) {
                 try {
                     return this.processGetWordTranslation(<any>response_);
                 } catch (e) {
-                    return <Observable<WordTranslationsDto>><any>_observableThrow(e);
+                    return <Observable<WordTranslations>><any>_observableThrow(e);
                 }
             } else
-                return <Observable<WordTranslationsDto>><any>_observableThrow(response_);
+                return <Observable<WordTranslations>><any>_observableThrow(response_);
         }));
     }
 
-    protected processGetWordTranslation(response: HttpResponseBase): Observable<WordTranslationsDto> {
+    protected processGetWordTranslation(response: HttpResponseBase): Observable<WordTranslations> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -72,7 +82,7 @@ export class TranslatorClient {
             return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = WordTranslationsDto.fromJS(resultData200);
+            result200 = WordTranslations.fromJS(resultData200);
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
@@ -80,30 +90,45 @@ export class TranslatorClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             }));
         }
-        return _observableOf<WordTranslationsDto>(<any>null);
+        return _observableOf<WordTranslations>(<any>null);
     }
 
     /**
-     * @param body (optional) 
+     * @param from (optional) 
+     * @param to (optional) 
+     * @param text (optional) 
+     * @param translation (optional) 
      * @return Success
      */
-    getExamples(body: WordExampleRequest | undefined): Observable<string[]> {
-        let url_ = this.baseUrl + "/translator/word-examples";
+    getExamples(from: string | undefined, to: string | undefined, text: string | undefined, translation: string | undefined): Observable<string[]> {
+        let url_ = this.baseUrl + "/translator/word-examples?";
+        if (from === null)
+            throw new Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "from=" + encodeURIComponent("" + from) + "&";
+        if (to === null)
+            throw new Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "to=" + encodeURIComponent("" + to) + "&";
+        if (text === null)
+            throw new Error("The parameter 'text' cannot be null.");
+        else if (text !== undefined)
+            url_ += "text=" + encodeURIComponent("" + text) + "&";
+        if (translation === null)
+            throw new Error("The parameter 'translation' cannot be null.");
+        else if (translation !== undefined)
+            url_ += "translation=" + encodeURIComponent("" + translation) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(body);
-
         let options_ : any = {
-            body: content_,
             observe: "response",
             responseType: "blob",
             headers: new HttpHeaders({
-                "Content-Type": "application/json",
                 "Accept": "text/plain"
             })
         };
 
-        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
             return this.processGetExamples(response_);
         })).pipe(_observableCatch((response_: any) => {
             if (response_ instanceof HttpResponseBase) {
@@ -150,7 +175,7 @@ export class TranslatorClient {
      * @param body (optional) 
      * @return Success
      */
-    getTextTranslation(body: TranslationRequest | undefined): Observable<TextTranslationDto> {
+    getTextTranslation(body: TranslationRequest | undefined): Observable<TextTranslation> {
         let url_ = this.baseUrl + "/translator/text-translation";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -173,14 +198,14 @@ export class TranslatorClient {
                 try {
                     return this.processGetTextTranslation(<any>response_);
                 } catch (e) {
-                    return <Observable<TextTranslationDto>><any>_observableThrow(e);
+                    return <Observable<TextTranslation>><any>_observableThrow(e);
                 }
             } else
-                return <Observable<TextTranslationDto>><any>_observableThrow(response_);
+                return <Observable<TextTranslation>><any>_observableThrow(response_);
         }));
     }
 
-    protected processGetTextTranslation(response: HttpResponseBase): Observable<TextTranslationDto> {
+    protected processGetTextTranslation(response: HttpResponseBase): Observable<TextTranslation> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -191,7 +216,7 @@ export class TranslatorClient {
             return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = TextTranslationDto.fromJS(resultData200);
+            result200 = TextTranslation.fromJS(resultData200);
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
@@ -199,14 +224,14 @@ export class TranslatorClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             }));
         }
-        return _observableOf<TextTranslationDto>(<any>null);
+        return _observableOf<TextTranslation>(<any>null);
     }
 }
 
-export class TextTranslationDto implements ITextTranslationDto {
+export class TextTranslation implements ITextTranslation {
     translation?: string | undefined;
 
-    constructor(data?: ITextTranslationDto) {
+    constructor(data?: ITextTranslation) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -221,9 +246,9 @@ export class TextTranslationDto implements ITextTranslationDto {
         }
     }
 
-    static fromJS(data: any): TextTranslationDto {
+    static fromJS(data: any): TextTranslation {
         data = typeof data === 'object' ? data : {};
-        let result = new TextTranslationDto();
+        let result = new TextTranslation();
         result.init(data);
         return result;
     }
@@ -235,7 +260,7 @@ export class TextTranslationDto implements ITextTranslationDto {
     }
 }
 
-export interface ITextTranslationDto {
+export interface ITextTranslation {
     translation?: string | undefined;
 }
 
@@ -283,59 +308,11 @@ export interface ITranslationRequest {
     text?: string | undefined;
 }
 
-export class WordExampleRequest implements IWordExampleRequest {
-    from?: string | undefined;
-    to?: string | undefined;
-    text?: string | undefined;
+export class WordTranslation implements IWordTranslation {
     translation?: string | undefined;
-
-    constructor(data?: IWordExampleRequest) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.from = _data["from"];
-            this.to = _data["to"];
-            this.text = _data["text"];
-            this.translation = _data["translation"];
-        }
-    }
-
-    static fromJS(data: any): WordExampleRequest {
-        data = typeof data === 'object' ? data : {};
-        let result = new WordExampleRequest();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["from"] = this.from;
-        data["to"] = this.to;
-        data["text"] = this.text;
-        data["translation"] = this.translation;
-        return data; 
-    }
-}
-
-export interface IWordExampleRequest {
-    from?: string | undefined;
-    to?: string | undefined;
-    text?: string | undefined;
-    translation?: string | undefined;
-}
-
-export class WordTranslationDto implements IWordTranslationDto {
     partOfSpeech?: string | undefined;
-    translation?: string | undefined;
 
-    constructor(data?: IWordTranslationDto) {
+    constructor(data?: IWordTranslation) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -346,36 +323,36 @@ export class WordTranslationDto implements IWordTranslationDto {
 
     init(_data?: any) {
         if (_data) {
+            this.translation = _data["translation"];
             this.partOfSpeech = _data["partOfSpeech"];
-            this.translation = _data["translation"];
         }
     }
 
-    static fromJS(data: any): WordTranslationDto {
+    static fromJS(data: any): WordTranslation {
         data = typeof data === 'object' ? data : {};
-        let result = new WordTranslationDto();
+        let result = new WordTranslation();
         result.init(data);
         return result;
     }
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["partOfSpeech"] = this.partOfSpeech;
         data["translation"] = this.translation;
+        data["partOfSpeech"] = this.partOfSpeech;
         return data; 
     }
 }
 
-export interface IWordTranslationDto {
-    partOfSpeech?: string | undefined;
+export interface IWordTranslation {
     translation?: string | undefined;
+    partOfSpeech?: string | undefined;
 }
 
-export class WordTranslationsDto implements IWordTranslationsDto {
+export class WordTranslations implements IWordTranslations {
     word?: string | undefined;
-    translations?: WordTranslationDto[] | undefined;
+    translations?: WordTranslation[] | undefined;
 
-    constructor(data?: IWordTranslationsDto) {
+    constructor(data?: IWordTranslations) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -390,14 +367,14 @@ export class WordTranslationsDto implements IWordTranslationsDto {
             if (Array.isArray(_data["translations"])) {
                 this.translations = [] as any;
                 for (let item of _data["translations"])
-                    this.translations!.push(WordTranslationDto.fromJS(item));
+                    this.translations!.push(WordTranslation.fromJS(item));
             }
         }
     }
 
-    static fromJS(data: any): WordTranslationsDto {
+    static fromJS(data: any): WordTranslations {
         data = typeof data === 'object' ? data : {};
-        let result = new WordTranslationsDto();
+        let result = new WordTranslations();
         result.init(data);
         return result;
     }
@@ -414,9 +391,9 @@ export class WordTranslationsDto implements IWordTranslationsDto {
     }
 }
 
-export interface IWordTranslationsDto {
+export interface IWordTranslations {
     word?: string | undefined;
-    translations?: WordTranslationDto[] | undefined;
+    translations?: WordTranslation[] | undefined;
 }
 
 export class ApiException extends Error {

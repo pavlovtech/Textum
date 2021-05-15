@@ -36,7 +36,7 @@ namespace TextumReader.Services.Translator
                 c.IncludeXmlComments(xmlPath);
             });
 
-            services.AddScoped<ITranslator, YandexTranslator>();
+            services.AddScoped<ITranslator, CognitiveServicesTranslator>();
 
             services.AddResponseCaching();
         }
