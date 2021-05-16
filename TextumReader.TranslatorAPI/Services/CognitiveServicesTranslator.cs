@@ -46,7 +46,7 @@ namespace TextumReader.Services.Translator.Services
                 new WordTranslation((string) t["displayTarget"], (string) t["posTag"]));
 
 
-            return new WordTranslations(text, translations);
+            return new(text, translations);
         }
 
         public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
@@ -77,7 +77,7 @@ namespace TextumReader.Services.Translator.Services
 
             var translation = json[0]["translations"]?[0]["text"]?.ToString();
 
-            return new TextTranslation(translation);
+            return new(translation);
         }
 
         private async Task<string> SendTranslationRequest(string route, string requestBody)

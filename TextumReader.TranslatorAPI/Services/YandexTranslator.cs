@@ -48,7 +48,7 @@ namespace TextumReader.Services.Translator.Services
             IList<WordTranslation> translations = translationNodes.Select(t => t["tr"]).Select(t => new WordTranslation((string)t["text"], (string)t["pos"])).ToList();
 
 
-            return new WordTranslations(text, translations);
+            return new(text, translations);
         }
 
         public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
