@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TextumReader.Services.TextMaterial.Models;
 using TextumReader.Services.TextMaterial.Services;
 
@@ -9,71 +11,59 @@ namespace TextumReader.Services.TextMaterial.Controllers
     [ApiController]
     public class TextsController : ControllerBase
     {
-        private readonly TextsService _textService;
+        private readonly IRepository<Text> _cosmosDbService;
 
-        public TextsController(TextsService textService)
+        public TextsController(IRepository<Text> cosmosDbService)
         {
-            _textService = textService;
+            _cosmosDbService = cosmosDbService;
         }
 
         [HttpGet(Name = nameof(GetTexts))]
-        public ActionResult<List<Text>> GetTexts()
+        public async Task<IEnumerable<Text>> GetTexts()
         {
             var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
 
-            return _textService.GetByUserId(currentUserId);
+            return await _cosmosDbService.GetItemsAsync($"SELECT * FROM c WHERE c.userId = '{currentUserId}'");
         }
 
-        [HttpGet("{id:length(24)}", Name = nameof(GetTextById))]
-        public ActionResult<Text> GetTextById(string id)
+        [HttpGet("{id}", Name = nameof(GetTextById))]
+        public async Task<ActionResult<Text>> GetTextById(string id)
         {
-            var book = _textService.GetByBookId(id);
+            var text = await _cosmosDbService.GetItemAsync(id);
 
-            if (book == null)
+            if (text == null)
             {
                 return NotFound();
             }
 
-            return book;
+            return text;
         }
 
         [HttpPost(Name = nameof(CreateText))]
-        public ActionResult<Text> CreateText(Text text)
+        public async Task<CreatedAtRouteResult> CreateText(Text text)
         {
             var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
 
+            text.Id = Guid.NewGuid().ToString();
             text.UserId = currentUserId;
-            _textService.Create(text);
+
+            await _cosmosDbService.AddItemAsync(text);
 
             return CreatedAtRoute(nameof(GetTextById), new { id = text.Id }, text);
         }
 
-        [HttpPut("{id:length(24)}", Name = nameof(UpdateText))]
-        public IActionResult UpdateText(string id, Text text)
+        [HttpPut("{id}", Name = nameof(UpdateText))]
+        public async Task<NoContentResult> UpdateText(string id, Text text)
         {
-            var book = _textService.GetByBookId(id);
-
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            _textService.Update(id, text);
+            await _cosmosDbService.UpdateItemAsync(id, text);
 
             return NoContent();
         }
 
-        [HttpDelete("{id:length(24)}", Name = nameof(DeleteText))]
-        public IActionResult DeleteText(string id)
+        [HttpDelete("{id}", Name = nameof(DeleteText))]
+        public async Task<NoContentResult> DeleteText(string id)
         {
-            var book = _textService.GetByBookId(id);
-
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            _textService.Remove(book.Id);
+            await _cosmosDbService.DeleteItemAsync(id);
 
             return NoContent();
         }
