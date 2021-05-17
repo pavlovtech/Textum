@@ -17,4 +17,8 @@ export class TextsComponent implements OnInit {
 
   ngOnInit(): void {
   }
+
+  onDelete(id: string) {
+    this.textsClient.deleteText(id).subscribe(r => console.log(r));
+  }
 }

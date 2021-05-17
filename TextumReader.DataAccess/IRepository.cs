@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace TextumReader.Services.TextMaterial.Services
+namespace TextumReader.DataAccess
 {
-    public interface IRepository<T>
+    public interface IRepository<T> where T: BaseModel
     {
         Task<IEnumerable<T>> GetItemsAsync(string query);
         Task<T> GetItemAsync(string id);

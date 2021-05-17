@@ -1,10 +1,10 @@
 ﻿using System;
+using TextumReader.DataAccess;
 
 namespace TextumReader.Services.TextMaterial.Models
 {
-    public class Text
+    public class Text : BaseModel
     {
-        public string Id { get; set; }
         public string UserId { get; set; }
         public string Title { get; set; }
         public string TextContent { get; set; }

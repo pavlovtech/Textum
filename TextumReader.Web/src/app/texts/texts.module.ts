@@ -7,13 +7,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button'
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
-import { TextDetailsComponent } from './text-details/text-details.component';
+import { CreateTextComponent } from './create-text/create-text.component';
+import { EditTextComponent } from './edit-text/edit-text.component';
 
 
 @NgModule({
   declarations: [
     TextsComponent,
-    TextDetailsComponent
+    CreateTextComponent,
+    EditTextComponent
   ],
   imports: [
     CommonModule,

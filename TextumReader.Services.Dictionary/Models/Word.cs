@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+using TextumReader.DataAccess;
 
 namespace TextumReader.Services.Words.Models
 {
-    public class Word
+    public class Word : BaseModel
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
-
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
         public string UserId { get; set; }
 
         public string DisplayWord { get; set; }

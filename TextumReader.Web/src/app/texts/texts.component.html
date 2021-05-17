@@ -11,9 +11,12 @@
         </ng-template>
         <ng-template pTemplate="body" let-text>
             <tr>
-                <td><a [routerLink]="['/texts', text.id]" routerLinkActive="active">{{ text.title }}</a></td>
+                <td><a routerLinkActive="active">{{ text.title }}</a></td>
                 <td>{{ text.inputLanguage }}</td>
-                <td></td>
+                <td>
+                    <button [routerLink]="['/texts/edit', text.id]" routerLinkActive="active" mat-button color="primary">Edit</button>
+                    <button  mat-button color="warn" (click)="onDelete(text.id)">Delete</button>
+                </td>
             </tr>
         </ng-template>
     </p-table>

@@ -38,7 +38,9 @@ namespace TextumReader.Services.Translator
 
             services.AddScoped<ITranslator, CognitiveServicesTranslator>();
 
-            services.AddResponseCaching();
+            services.AddHttpClient<ITranslator, CognitiveServicesTranslator>();
+
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

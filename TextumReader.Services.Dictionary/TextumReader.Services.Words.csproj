@@ -10,8 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.12.2" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.18.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TextumReader.DataAccess\TextumReader.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>

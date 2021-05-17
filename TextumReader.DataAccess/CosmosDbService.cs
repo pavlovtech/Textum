@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TextumReader.Services.TextMaterial.Models;
 
-namespace TextumReader.Services.TextMaterial.Services
+namespace TextumReader.DataAccess
 {
-    public class CosmosDbService : IRepository<Text>
+    public class CosmosDbService<T> : IRepository<T> where T: BaseModel
     {
         private Container _container;
 
@@ -18,33 +17,33 @@ namespace TextumReader.Services.TextMaterial.Services
             this._container = dbClient.GetContainer(databaseName, containerName);
         }
 
-        public async Task AddItemAsync(Text item)
+        public async Task AddItemAsync(T item)
         {
             await _container.CreateItemAsync(item, new PartitionKey(item.Id));
         }
 
         public async Task DeleteItemAsync(string id)
         {
-            await _container.DeleteItemAsync<Text>(id, new PartitionKey(id));
+            await _container.DeleteItemAsync<T>(id, new PartitionKey(id));
         }
 
-        public async Task<Text> GetItemAsync(string id)
+        public async Task<T> GetItemAsync(string id)
         {
             try
             {
-                ItemResponse<Text> response = await _container.ReadItemAsync<Text>(id, new PartitionKey(id));
+                var response = await _container.ReadItemAsync<T>(id, new PartitionKey(id));
                 return response.Resource;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                return null;
+                return default(T);
             }
         }
 
-        public async Task<IEnumerable<Text>> GetItemsAsync(string queryString)
+        public async Task<IEnumerable<T>> GetItemsAsync(string queryString)
         {
-            var query = _container.GetItemQueryIterator<Text>(new QueryDefinition(queryString));
-            var results = new List<Text>();
+            var query = _container.GetItemQueryIterator<T>(new QueryDefinition(queryString));
+            var results = new List<T>();
             while (query.HasMoreResults)
             {
                 var response = await query.ReadNextAsync();
@@ -55,7 +54,7 @@ namespace TextumReader.Services.TextMaterial.Services
             return results;
         }
 
-        public async Task UpdateItemAsync(string id, Text item)
+        public async Task UpdateItemAsync(string id, T item)
         {
             await _container.UpsertItemAsync(item, new PartitionKey(id));
         }

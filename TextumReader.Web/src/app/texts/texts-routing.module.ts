@@ -1,20 +1,22 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { TextDetailsComponent } from './text-details/text-details.component';
+import { CreateTextComponent } from './create-text/create-text.component';
+import { EditTextComponent } from './edit-text/edit-text.component';
 import { TextsComponent } from './texts.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: TextsComponent
+    component: TextsComponent,
+    pathMatch: 'full'
   },
   {
     path: 'create',
-    component: TextDetailsComponent
+    component: CreateTextComponent
   },
   {
-    path: ':id',
-    component: TextDetailsComponent
+    path: 'edit/:id',
+    component: EditTextComponent
   }
 ];
 

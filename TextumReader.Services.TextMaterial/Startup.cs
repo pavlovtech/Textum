@@ -4,15 +4,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using TextumReader.DataAccess;
 using TextumReader.Services.TextMaterial.Models;
-using TextumReader.Services.TextMaterial.Services;
 
 namespace TextumReader.Services.TextMaterial
 {
@@ -40,9 +37,16 @@ namespace TextumReader.Services.TextMaterial
                 c.IncludeXmlComments(xmlPath);
             });
 
-            /*services.AddSingleton<TextsService>();*/
-            
-            services.AddSingleton<IRepository<Text>>(InitializeCosmosClientInstanceAsync(Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult());
+            var configuration = Configuration.GetSection("CosmosDb");
+
+            string databaseName = configuration.GetSection("DatabaseName").Value;
+            string containerName = configuration.GetSection("ContainerName").Value;
+            string account = configuration.GetSection("Account").Value;
+            string key = configuration.GetSection("Key").Value;
+
+            services.AddCosmosDbService<Text>(databaseName, containerName, account, key);
+
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -67,7 +71,7 @@ namespace TextumReader.Services.TextMaterial
             });
         }
 
-        private static async Task<CosmosDbService> InitializeCosmosClientInstanceAsync(IConfigurationSection configurationSection)
+        private static async Task<CosmosDbService<T>> InitializeCosmosClientInstanceAsync<T>(IConfigurationSection configurationSection) where T: BaseModel
         {
             string databaseName = configurationSection.GetSection("DatabaseName").Value;
             string containerName = configurationSection.GetSection("ContainerName").Value;
@@ -80,7 +84,7 @@ namespace TextumReader.Services.TextMaterial
                     PropertyNamingPolicy = Microsoft.Azure.Cosmos.CosmosPropertyNamingPolicy.CamelCase
                 }
             });
-            CosmosDbService cosmosDbService = new CosmosDbService(client, databaseName, containerName);
+            var cosmosDbService = new CosmosDbService<T>(client, databaseName, containerName);
             Microsoft.Azure.Cosmos.DatabaseResponse database = await client.CreateDatabaseIfNotExistsAsync(databaseName);
             await database.Database.CreateContainerIfNotExistsAsync(containerName, "/id");
 

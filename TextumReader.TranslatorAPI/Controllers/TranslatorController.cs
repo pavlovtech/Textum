@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using TextumReader.Services.Translator.DTO.Responses;
 using TextumReader.Services.Translator.Services;
@@ -13,12 +15,13 @@ namespace TextumReader.Services.Translator.Controllers
     {
         private readonly ITranslator _translator;
         private readonly ILogger<TranslatorController> _logger;
+        private readonly IMemoryCache _memoryCache;
 
-
-        public TranslatorController(ITranslator translator, ILogger<TranslatorController> logger)
+        public TranslatorController(ITranslator translator, ILogger<TranslatorController> logger, IMemoryCache memoryCache)
         {
             _translator = translator;
             _logger = logger;
+            _memoryCache = memoryCache;
         }
 
         /// <remarks>
@@ -35,7 +38,22 @@ namespace TextumReader.Services.Translator.Controllers
         [HttpGet("word-translation", Name = nameof(GetWordTranslation))]
         public async Task<WordTranslations> GetWordTranslation([FromQuery]string from, [FromQuery]string to, [FromQuery]string text)
         {
-            return await _translator.GetWordTranslation(from, to, text);
+            WordTranslations cacheEntry;
+
+            string key = $"translation-{from}-{to}-{text}";
+
+            _memoryCache.TryGetValue(key, out cacheEntry);
+
+            if (cacheEntry != null)
+            {
+                return cacheEntry;
+            }
+
+            var translationResult = await _translator.GetWordTranslation(from, to, text);
+
+            _memoryCache.Set(key, translationResult, TimeSpan.FromDays(30));
+
+            return translationResult;
         }
 
         [HttpGet("word-examples", Name = nameof(GetExamples))]

@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using TextumReader.Services.Dictionary.Services;
+using TextumReader.DataAccess;
 using TextumReader.Services.Words.Models;
 
 namespace TextumReader.Services.Words.Controllers
@@ -9,25 +11,27 @@ namespace TextumReader.Services.Words.Controllers
     [ApiController]
     public class WordsController : ControllerBase
     {
-        private readonly WordsService _wordsService;
+        private readonly IRepository<Word> _cosmosDbService;
 
-        public WordsController(WordsService wordsService)
+        public WordsController(IRepository<Word> cosmosDbService)
         {
-            _wordsService = wordsService;
+            _cosmosDbService = cosmosDbService;
         }
 
         [HttpGet(Name = nameof(GetWords))]
-        public ActionResult<List<Word>> GetWords()
+        public async Task<IEnumerable<Word>> GetWords()
         {
             var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
 
-            return _wordsService.GetWords(currentUserId);
+            var result = await _cosmosDbService.GetItemsAsync($"SELECT * FROM c WHERE c.userId = '{currentUserId}'");
+
+            return result;
         }
 
         [HttpGet("{id:length(24)}", Name = nameof(GetWordById))]
-        public ActionResult<Word> GetWordById(string id)
+        public async Task<ActionResult<Word>> GetWordById(string id)
         {
-            var word = _wordsService.GetWord(id);
+            var word = await _cosmosDbService.GetItemAsync($"SELECT * FROM c WHERE c.id = '{id}'");
 
             if (word == null) return NotFound();
 
@@ -35,33 +39,30 @@ namespace TextumReader.Services.Words.Controllers
         }
 
         [HttpPost(Name = nameof(CreateWord))]
-        public ActionResult<Word> CreateWord(Word word)
+        public async Task<ActionResult<Word>> CreateWord(Word word)
         {
-            _wordsService.Create(word);
+            var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
+
+            word.Id = Guid.NewGuid().ToString();
+            word.UserId = currentUserId;
+
+            await _cosmosDbService.AddItemAsync(word);
 
             return CreatedAtRoute(nameof(GetWordById), new {id = word.Id}, word);
         }
 
-        [HttpPut("{id:length(24)}", Name = nameof(UpdateWord))]
-        public IActionResult UpdateWord(string id, Word word)
+        [HttpPut("{id}", Name = nameof(UpdateWord))]
+        public async Task<IActionResult> UpdateWord(string id, Word word)
         {
-            var oldWord = _wordsService.GetWord(id);
-
-            if (oldWord == null) return NotFound();
-
-            _wordsService.Update(id, word);
+            await _cosmosDbService.UpdateItemAsync(id, word);
 
             return NoContent();
         }
 
-        [HttpDelete("{id:length(24)}", Name = nameof(DeleteWord))]
-        public IActionResult DeleteWord(string id)
+        [HttpDelete("{id}", Name = nameof(DeleteWord))]
+        public async Task<IActionResult> DeleteWord(string id)
         {
-            var word = _wordsService.GetWord(id);
-
-            if (word == null) return NotFound();
-
-            _wordsService.Remove(word.Id);
+            await _cosmosDbService.DeleteItemAsync(id);
 
             return NoContent();
         }

@@ -7,7 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using TextumReader.Services.Words.Settings;
+using TextumReader.DataAccess;
+using TextumReader.Services.Words.Models;
 
 namespace TextumReader.Services.Words
 {
@@ -35,8 +36,14 @@ namespace TextumReader.Services.Words
                 c.IncludeXmlComments(xmlPath);
             });
 
-            services.Configure<DatabaseSettings>(
-                Configuration.GetSection(nameof(DatabaseSettings)));
+            var configuration = Configuration.GetSection("CosmosDb");
+
+            string databaseName = configuration.GetSection("DatabaseName").Value;
+            string containerName = configuration.GetSection("ContainerName").Value;
+            string account = configuration.GetSection("Account").Value;
+            string key = configuration.GetSection("Key").Value;
+
+            services.AddCosmosDbService<Word>(databaseName, containerName, account, key);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

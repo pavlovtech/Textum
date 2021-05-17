@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,11 +17,12 @@ namespace TextumReader.Services.Translator.Services
         private readonly string _subscriptionKey;
         private readonly string _endpoint;
         private readonly string _location;
+        private readonly HttpClient _httpClient;
 
-        private static readonly HttpClient HttpClient = new HttpClient();
-        
-        public CognitiveServicesTranslator(IConfiguration configuration)
+        public CognitiveServicesTranslator(IConfiguration configuration, HttpClient httpClient)
         {
+            _httpClient = httpClient;
+
             _subscriptionKey = configuration["AzureSubscriptionKey"];
             _location = configuration["AzureLocation"];
             _endpoint = configuration["AzureTranslatorEndpoint"];
@@ -45,8 +47,9 @@ namespace TextumReader.Services.Translator.Services
             var translations = translationNodes.Select(t =>
                 new WordTranslation((string) t["displayTarget"], (string) t["posTag"]));
 
+            var translationResult = new WordTranslations(text, translations);
 
-            return new(text, translations);
+            return translationResult;
         }
 
         public async Task<IEnumerable<string>> GetExamples(string from, string to, string text, string translation)
@@ -91,7 +94,7 @@ namespace TextumReader.Services.Translator.Services
             request.Headers.Add("Ocp-Apim-Subscription-Region", _location);
 
             // Send the request and get response.
-            var response = await HttpClient.SendAsync(request).ConfigureAwait(false);
+            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
             // Read response as a string.
             string result = await response.Content.ReadAsStringAsync();
             return result;

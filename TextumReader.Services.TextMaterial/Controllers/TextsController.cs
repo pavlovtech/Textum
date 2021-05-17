@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TextumReader.DataAccess;
 using TextumReader.Services.TextMaterial.Models;
-using TextumReader.Services.TextMaterial.Services;
 
 namespace TextumReader.Services.TextMaterial.Controllers
 {
@@ -12,10 +13,12 @@ namespace TextumReader.Services.TextMaterial.Controllers
     public class TextsController : ControllerBase
     {
         private readonly IRepository<Text> _cosmosDbService;
+        private readonly IMemoryCache _memoryCache;
 
-        public TextsController(IRepository<Text> cosmosDbService)
+        public TextsController(IRepository<Text> cosmosDbService, IMemoryCache memoryCache)
         {
             _cosmosDbService = cosmosDbService;
+            _memoryCache = memoryCache;
         }
 
         [HttpGet(Name = nameof(GetTexts))]
@@ -23,18 +26,46 @@ namespace TextumReader.Services.TextMaterial.Controllers
         {
             var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
 
-            return await _cosmosDbService.GetItemsAsync($"SELECT * FROM c WHERE c.userId = '{currentUserId}'");
+            IEnumerable<Text> cacheEntry;
+
+            string key = $"texts-{currentUserId}";
+
+            _memoryCache.TryGetValue(key, out cacheEntry);
+
+            if (cacheEntry != null)
+            {
+                return cacheEntry;
+            }
+
+            var result = await _cosmosDbService.GetItemsAsync($"SELECT * FROM c WHERE c.userId = '{currentUserId}'");
+
+            _memoryCache.Set(key, result, TimeSpan.FromDays(30));
+
+            return result;
         }
 
         [HttpGet("{id}", Name = nameof(GetTextById))]
         public async Task<ActionResult<Text>> GetTextById(string id)
         {
+            Text cacheEntry;
+
+            string key = $"text-{id}";
+
+            _memoryCache.TryGetValue(key, out cacheEntry);
+
+            if (cacheEntry != null)
+            {
+                return cacheEntry;
+            }
+
             var text = await _cosmosDbService.GetItemAsync(id);
 
             if (text == null)
             {
                 return NotFound();
             }
+
+            _memoryCache.Set(key, text, TimeSpan.FromDays(30));
 
             return text;
         }
@@ -49,6 +80,9 @@ namespace TextumReader.Services.TextMaterial.Controllers
 
             await _cosmosDbService.AddItemAsync(text);
 
+            _memoryCache.Set($"text-{text.Id}", text, TimeSpan.FromDays(30));
+            _memoryCache.Remove($"texts-{currentUserId}");
+
             return CreatedAtRoute(nameof(GetTextById), new { id = text.Id }, text);
         }
 
@@ -57,13 +91,20 @@ namespace TextumReader.Services.TextMaterial.Controllers
         {
             await _cosmosDbService.UpdateItemAsync(id, text);
 
+            _memoryCache.Set($"text-{id}", text, TimeSpan.FromDays(30));
+
             return NoContent();
         }
 
         [HttpDelete("{id}", Name = nameof(DeleteText))]
         public async Task<NoContentResult> DeleteText(string id)
         {
+            var currentUserId = HttpContext.Request.Headers["CurrentUser"][0];
+
             await _cosmosDbService.DeleteItemAsync(id);
+
+            _memoryCache.Remove($"text-{id}");
+            _memoryCache.Remove($"texts-{currentUserId}");
 
             return NoContent();
         }
