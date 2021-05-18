@@ -5,9 +5,13 @@
         <input matInput formControlName="title" required>
     </mat-form-field>
 
-    <mat-form-field class="full-width">
+    <mat-form-field appearance="fill">
         <mat-label>Input language</mat-label>
-        <input matInput formControlName="inputLanguage" required>
+        <mat-select formControlName="inputLanguage" required>
+          <mat-option *ngFor="let lang of languages" [value]="lang.value">
+            {{ lang.viewValue }}
+          </mat-option>
+        </mat-select>
     </mat-form-field>
 
     <mat-form-field class="full-width">

@@ -11,7 +11,7 @@
         </ng-template>
         <ng-template pTemplate="body" let-text>
             <tr>
-                <td><a routerLinkActive="active">{{ text.title }}</a></td>
+                <td><a [routerLink]="['/texts/view', text.id]" routerLinkActive="active">{{ text.title }}</a></td>
                 <td>{{ text.inputLanguage }}</td>
                 <td>
                     <button [routerLink]="['/texts/edit', text.id]" routerLinkActive="active" mat-button color="primary">Edit</button>

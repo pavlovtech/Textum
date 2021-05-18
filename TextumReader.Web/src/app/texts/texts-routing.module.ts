@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { CreateTextComponent } from './create-text/create-text.component';
 import { EditTextComponent } from './edit-text/edit-text.component';
 import { TextsComponent } from './texts.component';
+import { ViewTextComponent } from './view-text/view-text.component';
 
 const routes: Routes = [
   {
@@ -17,6 +18,10 @@ const routes: Routes = [
   {
     path: 'edit/:id',
     component: EditTextComponent
+  },
+  {
+    path: 'view/:id',
+    component: ViewTextComponent
   }
 ];
 

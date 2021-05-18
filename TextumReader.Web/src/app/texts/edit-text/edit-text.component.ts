@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -19,8 +19,10 @@ export class EditTextComponent implements OnInit {
   success = false;
 
   textId!: string;
-  
-  constructor(private textsClient: TextsClient, private route: ActivatedRoute, private fb: FormBuilder) { }
+
+  constructor(private textsClient: TextsClient,
+    private route: ActivatedRoute,
+    private fb: FormBuilder) { }
 
   ngOnInit(): void {
 
@@ -47,18 +49,6 @@ export class EditTextComponent implements OnInit {
     })
   }
 
-  get textName() {
-    return this.textForm.get('textName');
-  }
-
-  get text() {
-    return this.textForm.get('text');
-  }
-
-  get inputLanguage() {
-    return this.textForm.get('inputLanguage');
-  }
-
   async onSubmit() {
 
     this.loading = true;
@@ -77,5 +67,4 @@ export class EditTextComponent implements OnInit {
       this.success = false;
     });
   }
-
 }

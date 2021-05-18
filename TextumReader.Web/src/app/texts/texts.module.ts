@@ -9,13 +9,15 @@ import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CreateTextComponent } from './create-text/create-text.component';
 import { EditTextComponent } from './edit-text/edit-text.component';
-
+import { MatSelectModule } from '@angular/material/select';
+import { ViewTextComponent } from './view-text/view-text.component';
 
 @NgModule({
   declarations: [
     TextsComponent,
     CreateTextComponent,
-    EditTextComponent
+    EditTextComponent,
+    ViewTextComponent
   ],
   imports: [
     CommonModule,
@@ -24,7 +26,8 @@ import { EditTextComponent } from './edit-text/edit-text.component';
     MatInputModule,
     MatButtonModule,
     HttpClientModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatSelectModule
   ]
 })
 export class TextsModule { }

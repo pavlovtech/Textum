@@ -1,0 +1,2 @@
+<h1>{{ (text$ | async)?.title }}</h1>
+<div (click)="onWordClicked($event)" [innerHTML]="(text$ | async)?.textContent"></div>
