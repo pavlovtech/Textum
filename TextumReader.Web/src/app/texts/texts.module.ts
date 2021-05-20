@@ -11,6 +11,7 @@ import { CreateTextComponent } from './create-text/create-text.component';
 import { EditTextComponent } from './edit-text/edit-text.component';
 import { MatSelectModule } from '@angular/material/select';
 import { ViewTextComponent } from './view-text/view-text.component';
+import { NgbModule, NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { ViewTextComponent } from './view-text/view-text.component';
     MatButtonModule,
     HttpClientModule,
     ReactiveFormsModule,
-    MatSelectModule
+    MatSelectModule,
+    NgbModule
   ]
 })
 export class TextsModule { }

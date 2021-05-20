@@ -1,2 +1,6 @@
 <h1>{{ (text$ | async)?.title }}</h1>
+<!-- <button type="button" class="btn btn-lg btn-danger"
+    data-bs-toggle="popover" title="Test" data-bs-content="Test" data-bs-placement="bottom">
+    Click to toggle popover
+</button> -->
 <div (click)="onWordClicked($event)" [innerHTML]="(text$ | async)?.textContent"></div>
