@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ContentChildren, ElementRef, OnChanges, OnInit, QueryList, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, ContentChildren, ElementRef, OnChanges, OnDestroy, OnInit, QueryList, SimpleChanges } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -10,14 +10,16 @@ import { Popover } from "bootstrap";
   templateUrl: './view-text.component.html',
   styleUrls: ['./view-text.component.scss']
 })
-export class ViewTextComponent implements OnInit {
+export class ViewTextComponent implements OnInit, OnDestroy {
 
   text$?: Observable<Text>;
   textId!: string;
 
-  @ContentChildren("span") words!: QueryList<ElementRef>;
-
   constructor(private textsClient: TextsClient, private translatorClient: TranslatorClient, private route: ActivatedRoute) { }
+
+  ngOnDestroy(): void {
+    this.popover?.hide();
+  }
 
   ngOnInit(): void {
     this.textId = this.route.snapshot.params.id;
@@ -40,36 +42,75 @@ export class ViewTextComponent implements OnInit {
 
     var regexp = new RegExp("[a-zA-z" + pattern + "’'-]+", "gi");
 
-    text = text.replace(regexp, "<span class='word'>" + "$&" + "</span>");
+    text = text.replace(regexp, "<span>" + "$&" + "</span>");
     text = text.replace(/\n/g, "<br />");
     
     return text;
   }
 
   popover!: Popover;
+  previousPopoverRef!: HTMLElement | undefined;
 
   onWordClicked(event: MouseEvent) {
 
-    if (this.popover) {
-      this.popover.hide();
+    const currentPopoverRef = event.target as HTMLElement;
+
+    const isWordElement = currentPopoverRef.tagName === 'SPAN';
+
+    if (!isWordElement) {
+      this.previousPopoverRef = undefined;
+      this.popover?.hide();
+      
+      return;
     }
 
-    const el = event.target as HTMLElement;
-    this.translatorClient.getWordTranslation("en", "ru", el.innerText).subscribe(data => {
+    const isRelevantPopoverOpened = currentPopoverRef === this.previousPopoverRef;
+    if (isRelevantPopoverOpened) {
+      this.popover?.toggle();
+      return;
+    }
 
-      const translations = data.translations?.reduce((accumulator, currentValue) => `${accumulator}<p>${currentValue.translation}</p>`, '');
+    // hide previous popover
+    this.popover?.hide();
 
-      this.popover = new Popover(el, {
-        container: 'body',
-        content: translations,
-        html: true,
-        placement: 'bottom',
-        trigger: 'manual',
-        title: data.word
-      });
+    this.previousPopoverRef = currentPopoverRef;
 
-      this.popover.show();
+    const word = currentPopoverRef.innerText;
+
+    this.translatorClient.getWordTranslation("en", "ru", word).pipe(
+      map(({translations, word }) => {
+        const trans = translations?.reduce((accumulator, currentValue) => `${accumulator}<p>${currentValue.translation}</p>`, '');
+
+        return {
+          content: trans,
+          title: word,
+          currentPopoverRef
+        }
+      })
+    ).subscribe(data => this.showPopover(data));
+  }
+
+  showPopover(settings: { content?: string, title?: string, currentPopoverRef: HTMLElement}): void {
+
+    if (!settings.currentPopoverRef) {
+      return;
+    }
+
+    this.popover = new Popover(settings.currentPopoverRef, {
+      container: 'body',
+      content: settings.content,
+      html: true,
+      placement: 'bottom',
+      trigger: 'manual',
+      title: settings.title
     });
+
+    this.popover.show();
+  }
+
+  onClickedOutside(e: Event) {
+    this.previousPopoverRef = undefined;
+    this.popover?.hide();
   }
 
 }

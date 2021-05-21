@@ -11,7 +11,7 @@ import { CreateTextComponent } from './create-text/create-text.component';
 import { EditTextComponent } from './edit-text/edit-text.component';
 import { MatSelectModule } from '@angular/material/select';
 import { ViewTextComponent } from './view-text/view-text.component';
-import { NgbModule, NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
+import { ClickOutsideModule } from 'ng-click-outside';
 
 @NgModule({
   declarations: [
@@ -29,7 +29,7 @@ import { NgbModule, NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
     HttpClientModule,
     ReactiveFormsModule,
     MatSelectModule,
-    NgbModule
+    ClickOutsideModule
   ]
 })
 export class TextsModule { }

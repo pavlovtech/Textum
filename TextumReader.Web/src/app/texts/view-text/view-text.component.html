@@ -3,4 +3,4 @@
     data-bs-toggle="popover" title="Test" data-bs-content="Test" data-bs-placement="bottom">
     Click to toggle popover
 </button> -->
-<div (click)="onWordClicked($event)" [innerHTML]="(text$ | async)?.textContent"></div>
+<div (clickOutside)="onClickedOutside($event)" (click)="onWordClicked($event)" id="textContent" [innerHTML]="(text$ | async)?.textContent"></div>
