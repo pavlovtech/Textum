@@ -31,22 +31,16 @@ namespace TextumReader.Services.Translator.Services
 
             var client = new RestClient(_url);
 
-            if (_env.IsDevelopment())
-            {
-                client.Proxy = new WebProxy(new Uri("https://209.127.191.180:9279"));
-            }
-
             var request = new RestRequest($"?key={_key}&lang={from}-{to}&text={text}", DataFormat.Json);
 
             var response = await client.ExecuteAsync(request);
 
-            var json = JArray.Parse(response.Content);
+            var json = JObject.Parse(response.Content);
 
 
-            var translationNodes = (JArray)json["def"];
+            var translationNodes = (JArray)json["def"][0]["tr"];
 
-            IList<WordTranslation> translations = translationNodes.Select(t => t["tr"]).Select(t => new WordTranslation((string)t["text"], (string)t["pos"])).ToList();
-
+            IList<WordTranslation> translations = translationNodes.Select(t => new WordTranslation((string)t["text"], (string)t["pos"])).ToList();
 
             return new(text, translations);
         }

@@ -87,22 +87,22 @@ export class ViewTextComponent implements OnInit, OnDestroy {
           currentPopoverRef
         }
       })
-    ).subscribe(data => this.showPopover(data));
+    ).subscribe(data => this.showPopover(data.content, data.title, data.currentPopoverRef));
   }
 
-  showPopover(settings: { content?: string, title?: string, currentPopoverRef: HTMLElement}): void {
+  showPopover(content?: string, title?: string, currentPopoverRef?: HTMLElement): void {
 
-    if (!settings.currentPopoverRef) {
+    if (!currentPopoverRef) {
       return;
     }
 
-    this.popover = new Popover(settings.currentPopoverRef, {
+    this.popover = new Popover(currentPopoverRef, {
       container: 'body',
-      content: settings.content,
+      content: content,
       html: true,
       placement: 'bottom',
       trigger: 'manual',
-      title: settings.title
+      title: title
     });
 
     this.popover.show();
