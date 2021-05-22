@@ -36,7 +36,7 @@ namespace TextumReader.Services.Translator.Controllers
         ///
         /// </remarks>
         [HttpGet("word-translation", Name = nameof(GetWordTranslation))]
-        public async Task<WordTranslations> GetWordTranslation([FromQuery]string from, [FromQuery]string to, [FromQuery]string text)
+        public async Task<ActionResult<WordTranslations>> GetWordTranslation([FromQuery]string from, [FromQuery]string to, [FromQuery]string text)
         {
             WordTranslations cacheEntry;
 
@@ -51,7 +51,13 @@ namespace TextumReader.Services.Translator.Controllers
 
             var translationResult = await _translator.GetWordTranslation(from, to, text);
 
-            _memoryCache.Set(key, translationResult, TimeSpan.FromDays(30));
+
+            if (translationResult == null)
+            {
+                return NotFound();
+            }
+
+            _memoryCache.Set(key, translationResult, TimeSpan.FromDays(7));
 
             return translationResult;
         }

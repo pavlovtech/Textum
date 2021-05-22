@@ -31,6 +31,11 @@ namespace TextumReader.Services.Translator.Services
 
             var client = new RestClient(_url);
 
+            //Set credentials
+            ICredentials credentials = new NetworkCredential("ptpsgdki-dest", "36apl5ukzh66");
+
+            client.Proxy = new WebProxy("209.127.191.180:9279", true, null, credentials);
+
             var request = new RestRequest($"?key={_key}&lang={from}-{to}&text={text}", DataFormat.Json);
 
             var response = await client.ExecuteAsync(request);
@@ -38,7 +43,14 @@ namespace TextumReader.Services.Translator.Services
             var json = JObject.Parse(response.Content);
 
 
-            var translationNodes = (JArray)json["def"][0]["tr"];
+            var definition = (JArray)json["def"];
+
+            if(!definition.Any())
+            {
+                return null;
+            }
+
+            var translationNodes = definition[0]["tr"];
 
             IList<WordTranslation> translations = translationNodes.Select(t => new WordTranslation((string)t["text"], (string)t["pos"])).ToList();
 

@@ -37,8 +37,9 @@ namespace TextumReader.Services.Translator
             });
 
             services.AddScoped<ITranslator, CognitiveServicesTranslator>();
-
             services.AddHttpClient<ITranslator, CognitiveServicesTranslator>();
+
+            //services.AddScoped<ITranslator, YandexTranslator>();
 
             services.AddMemoryCache();
         }

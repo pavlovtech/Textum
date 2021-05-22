@@ -44,6 +44,11 @@ namespace TextumReader.Services.Translator.Services
 
             var translationNodes = (JArray)json[0]["translations"];
 
+            if (!translationNodes.Any())
+            {
+                return null;
+            }
+
             var translations = translationNodes.Select(t =>
                 new WordTranslation((string) t["displayTarget"], (string) t["posTag"]));
 
