@@ -26,6 +26,11 @@ namespace TextumReader.GoogleTranslateScrapper
 
         public TranslationEntity Insert(TranslationEntity translation)
         {
+            if (_translations.Find(w => w.Word == translation.Word).Any())
+            {
+                return translation;
+            }
+
             _translations.InsertOne(translation);
             return translation;
         }

@@ -70,21 +70,27 @@ namespace TextumReader.GoogleTranslateScrapper
                 endpoints.MapHangfireDashboard();
             });
 
-            var options = new BackgroundJobServerOptions { WorkerCount = Environment.ProcessorCount * 2 };
+            var options = new BackgroundJobServerOptions { WorkerCount = int.Parse(Configuration["WorkerCount"]) };
 
             app.UseHangfireServer(options);
 
 
-            //var words = File.ReadAllLines("./words/en.txt").ToList();
+            /*
+            int batchSize = 100;
+            var source = File.ReadAllLines("./words/en.txt").ToArray();
+            
+            string[] buffer;
 
-            //var words = new List<string> { "addlehead" };
-
-            //for (int i = 0; i < words.Count; i++)
-            //{
-            //    logger.LogInformation($"Processing {i} of {words.Count} words");
-            //    //context.WriteLine($"Processing {i} of {words.Count} words");
-            //    backgroundJobs.Enqueue<GetTranslationsJob>(job => job.Run("en", "ru", words[i], null));
-            //}
+            for (int i = 0; i < source.Length; i += batchSize)
+            {
+                buffer = new string[batchSize];
+                buffer = source.Skip(i).Take(batchSize).ToArray();
+                
+                logger.LogInformation($"Processing batch from {i} to {i + batchSize}");
+                //context.WriteLine($"Processing {i} of {words.Count} words");
+                backgroundJobs.Enqueue<GetTranslationsJob>(job => job.Run("en", "ru", buffer, null));
+            }
+            */
         }
     }
 }
