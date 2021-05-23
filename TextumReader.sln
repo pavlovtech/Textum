@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextumReader.Gateway", "Tex
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextumReader.DataAccess", "TextumReader.DataAccess\TextumReader.DataAccess.csproj", "{28E20BE5-CF0A-4272-9D9C-106629277004}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextumReader.GoogleTranslateScrapper", "TextumReader.GoogleTranslateScrapper\TextumReader.GoogleTranslateScrapper.csproj", "{D39E99EB-10B3-426D-97D8-35B176E27863}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextumReader.GoogleTranslateScrapper", "TextumReader.GoogleTranslateScrapper\TextumReader.GoogleTranslateScrapper.csproj", "{D39E99EB-10B3-426D-97D8-35B176E27863}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextumReader.HangfireJobServer", "TextumReader.HangfireJobServer\TextumReader.HangfireJobServer.csproj", "{C7938491-4F6D-4C49-86CC-D3C09ECA6498}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{D39E99EB-10B3-426D-97D8-35B176E27863}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D39E99EB-10B3-426D-97D8-35B176E27863}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D39E99EB-10B3-426D-97D8-35B176E27863}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7938491-4F6D-4C49-86CC-D3C09ECA6498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7938491-4F6D-4C49-86CC-D3C09ECA6498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7938491-4F6D-4C49-86CC-D3C09ECA6498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7938491-4F6D-4C49-86CC-D3C09ECA6498}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

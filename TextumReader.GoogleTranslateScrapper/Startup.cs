@@ -10,6 +10,11 @@ using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.Extensions.Configuration;
+using System.IO;
+using TextumReader.GoogleTranslateScrapper.Services;
+using Microsoft.Extensions.Logging;
+using Hangfire.Console;
+using Hangfire.Server;
 
 namespace TextumReader.GoogleTranslateScrapper
 {
@@ -30,6 +35,7 @@ namespace TextumReader.GoogleTranslateScrapper
                 Configuration.GetSection(nameof(DatabaseSettings)));
 
             services.AddSingleton<TranslationService>();
+            services.AddSingleton<ProxyProvider>();
 
             // Add Hangfire services.
             services.AddHangfire(configuration => configuration
@@ -43,7 +49,8 @@ namespace TextumReader.GoogleTranslateScrapper
                     QueuePollInterval = TimeSpan.Zero,
                     UseRecommendedIsolationLevel = true,
                     DisableGlobalLocks = true
-                }));
+                })
+                .UseConsole());
 
             // Add the processing server as IHostedService
             services.AddHangfireServer();
@@ -53,7 +60,7 @@ namespace TextumReader.GoogleTranslateScrapper
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBackgroundJobClient backgroundJobs)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBackgroundJobClient backgroundJobs, ILogger<TranslationEntity> logger /*, PerformContext context*/)
         {
             app.UseRouting();
             app.UseAuthorization();
@@ -63,13 +70,21 @@ namespace TextumReader.GoogleTranslateScrapper
                 endpoints.MapHangfireDashboard();
             });
 
-            var words = new string[] { "dude", "test", "hello" };
+            var options = new BackgroundJobServerOptions { WorkerCount = Environment.ProcessorCount * 2 };
+
+            app.UseHangfireServer(options);
 
 
-            foreach(var word in words)
-            {
-                _ = backgroundJobs.Enqueue<GetTranslationsJob>(job => job.Run("en", "ru", word));
-            }
+            //var words = File.ReadAllLines("./words/en.txt").ToList();
+
+            //var words = new List<string> { "addlehead" };
+
+            //for (int i = 0; i < words.Count; i++)
+            //{
+            //    logger.LogInformation($"Processing {i} of {words.Count} words");
+            //    //context.WriteLine($"Processing {i} of {words.Count} words");
+            //    backgroundJobs.Enqueue<GetTranslationsJob>(job => job.Run("en", "ru", words[i], null));
+            //}
         }
     }
 }
