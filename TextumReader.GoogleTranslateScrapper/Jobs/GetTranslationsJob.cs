@@ -12,18 +12,21 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using TextumReader.GoogleTranslateScrapper.Services;
+using TextumReader.TextumReader.GoogleTranslateScrapper.Services;
 
 namespace TextumReader.GoogleTranslateScrapper
 {
     public class GetTranslationsJob
     {
         private TranslationService _translationService;
+        private readonly CognitiveServicesTranslator _cognitiveServicesTranslator;
         private readonly ProxyProvider _proxyProvider;
         private readonly ILogger<TranslationEntity> _logger;
 
-        public GetTranslationsJob(TranslationService translationService, ProxyProvider proxyProvider, ILogger<TranslationEntity> logger)
+        public GetTranslationsJob(TranslationService translationService, CognitiveServicesTranslator cognitiveServicesTranslator, ProxyProvider proxyProvider, ILogger<TranslationEntity> logger)
         {
             _translationService = translationService;
+            _cognitiveServicesTranslator = cognitiveServicesTranslator;
             _proxyProvider = proxyProvider;
             _logger = logger;
         }
@@ -52,7 +55,21 @@ namespace TextumReader.GoogleTranslateScrapper
                 for (int i = 0; i < words.Count; i++)
                 {
                     driver.Navigate().GoToUrl($"https://translate.google.com/?sl={from}&tl={to}&text={words[i]}&op=translate");
-                    ProcessPage(words[i], context, driver, chromeOptions);
+                    
+                    var result = ProcessPage(words[i], context, driver, chromeOptions);
+
+                    if(result.Translations != null)
+                    {
+                        var translations = result.Translations.Where(t => t.Frequency == "Common" || t.Frequency == "Uncommon").ToList();
+
+                        foreach (var trans in translations)
+                        {
+                            trans.Examples = _cognitiveServicesTranslator.GetExamples(from, to, result.Word, trans.Translation).Take(3);
+                        }
+                    }
+
+                    _translationService.Insert(result);
+
                     // update value for previously created progress bar
                     double percent = ((double)i / words.Count) * 100;
                     progress.SetValue(percent);
@@ -60,7 +77,7 @@ namespace TextumReader.GoogleTranslateScrapper
             }
         }
 
-        private void ProcessPage(string word, PerformContext context, ChromeDriver driver, ChromeOptions chromeOptions)
+        private TranslationEntity ProcessPage(string word, PerformContext context, ChromeDriver driver, ChromeOptions chromeOptions)
         {
             _logger.LogInformation($"Started getting translations for {word}", word);
             context.WriteLine($"Started getting translations for {word}");
@@ -93,13 +110,14 @@ namespace TextumReader.GoogleTranslateScrapper
             }
             else
             {
-                _translationService.Insert(new TranslationEntity
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, $"Finished getting translations for {word}", word);
+                context.WriteLine($"Finished getting translations for {word}");
+
+                return new TranslationEntity
                 {
                     Word = word,
                     MainTranslation = mainTranslation
-                });
-
-                return;
+                };
             }
 
             var html = new HtmlDocument();
@@ -142,16 +160,16 @@ namespace TextumReader.GoogleTranslateScrapper
                     });
                 }
             }
+                
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, $"Finished getting translations for {word}", word);
+            context.WriteLine($"Finished getting translations for {word}");
 
-            _translationService.Insert(new TranslationEntity
+            return new TranslationEntity
             {
                 Word = word,
                 MainTranslation = mainTranslation,
                 Translations = result
-            });
-
-            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, $"Finished getting translations for {word}", word);
-            context.WriteLine($"Finished getting translations for {word}");
+            };
 
             bool IsElementPresent(By by)
             {

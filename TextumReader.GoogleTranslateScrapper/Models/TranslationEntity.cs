@@ -12,7 +12,8 @@ namespace TextumReader.GoogleTranslateScrapper
         public string Translation { get; set; }
         public string PartOfSpeach { get; set; }
         public string Frequency { get; set; }
-        public IEnumerable<string> Synonyms { get; init; }
+        public IEnumerable<string> Synonyms { get; set; }
+        public IEnumerable<string> Examples { get; set; }
     }
 
     public class TranslationEntity

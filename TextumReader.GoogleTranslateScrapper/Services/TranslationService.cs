@@ -14,7 +14,7 @@ namespace TextumReader.GoogleTranslateScrapper
             var client = new MongoClient(_options.ConnectionString);
             var database = client.GetDatabase(_options.DatabaseName);
 
-            _translations = database.GetCollection<TranslationEntity>(_options.CollectionName);
+            _translations = database.GetCollection<TranslationEntity>(_options.EnRuCollectionName);
 
             var options = new CreateIndexOptions() { Unique = true };
             var field = new StringFieldDefinition<TranslationEntity>("Word");

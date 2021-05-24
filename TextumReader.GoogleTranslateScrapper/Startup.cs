@@ -15,6 +15,7 @@ using TextumReader.GoogleTranslateScrapper.Services;
 using Microsoft.Extensions.Logging;
 using Hangfire.Console;
 using Hangfire.Server;
+using TextumReader.TextumReader.GoogleTranslateScrapper.Services;
 
 namespace TextumReader.GoogleTranslateScrapper
 {
@@ -35,7 +36,10 @@ namespace TextumReader.GoogleTranslateScrapper
                 Configuration.GetSection(nameof(DatabaseSettings)));
 
             services.AddSingleton<TranslationService>();
+            services.AddScoped<CognitiveServicesTranslator>();
+            services.AddHttpClient<CognitiveServicesTranslator>();
             services.AddSingleton<ProxyProvider>();
+            services.AddSingleton<ConfigurationService>();
 
             // Add Hangfire services.
             services.AddHangfire(configuration => configuration
@@ -60,7 +64,7 @@ namespace TextumReader.GoogleTranslateScrapper
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBackgroundJobClient backgroundJobs, ILogger<TranslationEntity> logger /*, PerformContext context*/)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBackgroundJobClient backgroundJobs, ILogger<TranslationEntity> logger, ConfigurationService configurationService)
         {
             app.UseRouting();
             app.UseAuthorization();
@@ -74,12 +78,15 @@ namespace TextumReader.GoogleTranslateScrapper
 
             app.UseHangfireServer(options);
 
-
             /*
             int batchSize = 100;
             var source = File.ReadAllLines("./words/en.txt").ToArray();
             
             string[] buffer;
+
+            var lastBatch = configurationService.Get("GoogleTranslateScreapperConfig")?.LastBatchNumber;
+
+            int currentBatch = lastBatch ?? 0;
 
             for (int i = 0; i < source.Length; i += batchSize)
             {
@@ -89,6 +96,10 @@ namespace TextumReader.GoogleTranslateScrapper
                 logger.LogInformation($"Processing batch from {i} to {i + batchSize}");
                 //context.WriteLine($"Processing {i} of {words.Count} words");
                 backgroundJobs.Enqueue<GetTranslationsJob>(job => job.Run("en", "ru", buffer, null));
+
+                configurationService.Update(new ScrapperConfig { 
+                    LastBatchNumber = i
+                });
             }
             */
         }
