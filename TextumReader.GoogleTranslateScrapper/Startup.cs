@@ -78,15 +78,14 @@ namespace TextumReader.GoogleTranslateScrapper
 
             app.UseHangfireServer(options);
 
-            /*
             int batchSize = 100;
             var source = File.ReadAllLines("./words/en.txt").ToArray();
             
             string[] buffer;
 
-            var lastBatch = configurationService.Get("GoogleTranslateScreapperConfig")?.LastBatchNumber;
+            var lastWord = configurationService.Get("EnRuConfig")?.LastWord;
 
-            int currentBatch = lastBatch ?? 0;
+            int currentBatch = lastWord ?? 0;
 
             for (int i = 0; i < source.Length; i += batchSize)
             {
@@ -98,10 +97,10 @@ namespace TextumReader.GoogleTranslateScrapper
                 backgroundJobs.Enqueue<GetTranslationsJob>(job => job.Run("en", "ru", buffer, null));
 
                 configurationService.Update(new ScrapperConfig { 
-                    LastBatchNumber = i
+                    ConfigName = "EnRuConfig",
+                    LastWord = i
                 });
             }
-            */
         }
     }
 }

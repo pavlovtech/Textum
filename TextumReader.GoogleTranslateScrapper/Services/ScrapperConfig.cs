@@ -11,6 +11,6 @@ namespace TextumReader.GoogleTranslateScrapper
 
         public string ConfigName { get; set; }
 
-        public int LastBatchNumber { get; set; }
+        public int LastWord { get; set; }
     }
 }

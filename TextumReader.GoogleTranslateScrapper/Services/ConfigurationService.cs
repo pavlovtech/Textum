@@ -21,7 +21,7 @@ namespace TextumReader.GoogleTranslateScrapper
 
         public void Update(ScrapperConfig crapperConfig)
         {
-            var result =_configCollection.ReplaceOne(x => x.ConfigName == crapperConfig.ConfigName, crapperConfig);
+            var result =_configCollection.ReplaceOne(x => x.ConfigName == crapperConfig.ConfigName, crapperConfig, new ReplaceOptions { IsUpsert = true });
         }
 
         public ScrapperConfig Get(string configName)
