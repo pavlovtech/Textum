@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TextumReader.TranslationJobProducer": {
+      "commandName": "Project",
+      "commandLineArgs": "en ru words/en.txt"
+    }
+  }
+}
