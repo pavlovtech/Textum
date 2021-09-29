@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using Serilog;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
-using TextumReader.GoogleTranslateScrapper;
 using TextumReader.TranslationJobProcessor.Jobs;
 using TextumReader.TranslationJobProcessor.Models;
 using TextumReader.TranslationJobProcessor.Services;
@@ -32,8 +31,8 @@ namespace TextumReader.TranslationJobProcessor
 
             var receiver = client.CreateReceiver(queueName);
 
-            CosmosClient cosmosClient = new CosmosClient("AccountEndpoint=https://textum-db.documents.azure.com:443/;AccountKey=wW2rIFDePw7LUkS1vgrAgtSsqH5DgOK36aDncGa2tlmZCMH8fPGKtENk6XuSr6DJXhkkFc96QGsx9H8tFKrhEw==;",
-                new CosmosClientOptions()
+            var cosmosClient = new CosmosClient("AccountEndpoint=https://textum-db.documents.azure.com:443/;AccountKey=wW2rIFDePw7LUkS1vgrAgtSsqH5DgOK36aDncGa2tlmZCMH8fPGKtENk6XuSr6DJXhkkFc96QGsx9H8tFKrhEw==;",
+                new CosmosClientOptions
                 {
                     SerializerOptions = new CosmosSerializationOptions
                     {
@@ -51,10 +50,12 @@ namespace TextumReader.TranslationJobProcessor
 
                     var job = new GetTranslationsJob(cosmosClient, receiver, examplesService, proxyProvider, log);
 
-                    return job.Run(@from, to, words, m);
-                });
+                    var task = new Task(async () => await job.Run(@from, to, words, m));
 
-                //var jobs = tasks.ToArray();
+                    task.Start();
+
+                    return task;
+                });
 
                 await Task.WhenAll(tasks);
 

@@ -17,7 +17,7 @@ namespace TextumReader.TranslationJobProcessor.Models
     {
         public string From { get; set; }
         public string To { get; set; }
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public string Word { get; init; }
         public string MainTranslation { get; init; }
         public IEnumerable<WordTranslation> Translations { get; init; }

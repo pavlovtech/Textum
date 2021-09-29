@@ -35,7 +35,7 @@ namespace TextumReader.TranslationJobProcessor.Jobs
 
         public async Task Run(string from, string to, IList<string> words, ServiceBusReceivedMessage m)
         {
-            _logger.Debug("==================== job.Run =================");
+            _logger.Information("==================== job.Run =================");
 
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArguments("headless");
@@ -52,7 +52,7 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                 {
                     driver.Navigate().GoToUrl($"https://translate.google.com/?sl={from}&tl={to}&text={words[i]}&op=translate");
                     
-                    var result = ProcessPage(words[i], from, to, driver, chromeOptions);
+                    var result = await ProcessPage(words[i], from, to, driver, chromeOptions, m);
 
                     if(result.Translations != null)
                     {
@@ -73,13 +73,21 @@ namespace TextumReader.TranslationJobProcessor.Jobs
 
             foreach (var translationEntity in translationEntities)
             {
-                await container.CreateItemAsync(translationEntity);
+                try
+                {
+                    await container.CreateItemAsync(translationEntity);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Information(ex, "Error occurred");
+                }
             }
 
+            _logger.Information("Complete job");
             await _serviceBusReceiver.CompleteMessageAsync(m);
         }
 
-        private TranslationEntity ProcessPage(string word, string from, string to, ChromeDriver driver, ChromeOptions chromeOptions)
+        private async Task<TranslationEntity> ProcessPage(string word, string from, string to, ChromeDriver driver, ChromeOptions chromeOptions, ServiceBusReceivedMessage m)
         {
             _logger.Information($"Started getting translations for {word}", word);
             
@@ -92,11 +100,13 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                     .Text;
                 if (text == "I agree")
                 {
-                    _logger.Information("Proxy is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
+                    _logger.Information("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
 
                     _proxyProvider.ExcludeProxy(chromeOptions.Proxy.HttpProxy);
 
-                    throw new ProxyCompromizedException($"Proxy is compromised {chromeOptions.Proxy.HttpProxy}");
+                    await _serviceBusReceiver.AbandonMessageAsync(m);
+
+                    throw new ProxyCompromizedException($"IP is compromised {chromeOptions.Proxy.HttpProxy}");
                 }
             }
 
@@ -116,7 +126,9 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                 {
                     Word = word,
                     MainTranslation = mainTranslation,
-                    Id = Guid.NewGuid()
+                    From = from,
+                    To = to,
+                    Id = $"{from}-{to}-{word}"
                 };
             }
 
@@ -144,7 +156,7 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                     {
                         PartOfSpeech = currentPartOfSpeach,
                         Translation = t[1],
-                        Synonyms = t[2].ToString().Split(","),
+                        Synonyms = t[2].Split(","),
                         Frequency = t[3]
                     });
                 }
@@ -155,7 +167,7 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                     {
                         PartOfSpeech = currentPartOfSpeach,
                         Translation = t[0],
-                        Synonyms = t[1].ToString().Split(","),
+                        Synonyms = t[1].Split(","),
                         Frequency = t[2]
                     });
                 }
@@ -170,7 +182,7 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                 To = to,
                 MainTranslation = mainTranslation,
                 Translations = result,
-                Id = Guid.NewGuid()
+                Id = $"{from}-{to}-{word}"
             };
 
             bool IsElementPresent(By by)
