@@ -1,37 +1,35 @@
-﻿using System.Linq;
-using Azure.Messaging.ServiceBus;
-using Newtonsoft.Json;
+﻿using System;
+using System.IO;
 using Serilog;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
-using TextumReader.TranslationJobProcessor.Jobs;
-using TextumReader.TranslationJobProcessor.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using TextumReader.TranslationJobProcessor.Abstract;
+using TextumReader.TranslationJobProcessor.EventHandlers;
 using TextumReader.TranslationJobProcessor.Services;
 
 namespace TextumReader.TranslationJobProcessor
 {
     class Program
     {
-        private static string connectionString =
-            "Endpoint=sb://textum-service-bus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=plILlKunrYGfN0jCGBpCh9W3Fo2EgSz9NGMUmoPxlIQ=";
-        static string queueName = "words-queue";
-
         static async Task Main()
         {
-            using var log = new LoggerConfiguration()
-            .WriteTo
-            .Console()
-            .CreateLogger();
+            var builder = new ConfigurationBuilder();
+            BuildConfig(builder);
 
-            var examplesService = new CognitiveServicesTranslator();
+            var config = builder.Build();
 
-            var proxyProvider = new ProxyProvider();
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(config)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
 
-            await using var client = new ServiceBusClient(connectionString);
+            Log.Logger.Information("Application Starting");
 
-            var receiver = client.CreateReceiver(queueName);
-
-            var cosmosClient = new CosmosClient("AccountEndpoint=https://textum-db.documents.azure.com:443/;AccountKey=wW2rIFDePw7LUkS1vgrAgtSsqH5DgOK36aDncGa2tlmZCMH8fPGKtENk6XuSr6DJXhkkFc96QGsx9H8tFKrhEw==;",
+            var cosmosClient = new CosmosClient(config.GetValue<string>("CosmosDbConnectionString"),
                 new CosmosClientOptions
                 {
                     SerializerOptions = new CosmosSerializationOptions
@@ -40,27 +38,31 @@ namespace TextumReader.TranslationJobProcessor
                     }
                 });
 
-            var msgs = await receiver.ReceiveMessagesAsync(30);
-
-            while (msgs.Count > 0)
-            {
-                var tasks = msgs.Select(m =>
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, collection) =>
                 {
-                    var (@from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(m.Body.ToString());
+                    collection.AddTransient<ITranslationsProcessingService, TranslationsProcessingService>();
+                    collection.AddTransient<ITranslationEventHandler, TranslationTranslationEventHandler>();
+                    collection.AddSingleton(cosmosClient);
+                    collection.AddSingleton<CognitiveServicesTranslator>();
+                    collection.AddSingleton<ProxyProvider>();
+                })
+                .UseSerilog()
+                .Build();
 
-                    var job = new GetTranslationsJob(cosmosClient, receiver, examplesService, proxyProvider, log);
+            var svc = ActivatorUtilities.CreateInstance<TranslationsProcessingService>(host.Services);
 
-                    var task = new Task(async () => await job.Run(@from, to, words, m));
+            await svc.Run();
+        }
 
-                    task.Start();
-
-                    return task;
-                });
-
-                await Task.WhenAll(tasks);
-
-                msgs = await receiver.ReceiveMessagesAsync(30);
-            }
+        static void BuildConfig(IConfigurationBuilder builder)
+        {
+            builder.SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("app.settings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile(
+                    $"app.settings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json",
+                    optional: true)
+                .AddEnvironmentVariables();
         }
     }
 }

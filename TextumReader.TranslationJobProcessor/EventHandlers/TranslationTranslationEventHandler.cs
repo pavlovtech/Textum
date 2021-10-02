@@ -6,36 +6,35 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using HtmlAgilityPack;
-using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using Serilog;
 using TextumReader.GoogleTranslateScrapper;
+using TextumReader.TranslationJobProcessor.Abstract;
 using TextumReader.TranslationJobProcessor.Models;
 using TextumReader.TranslationJobProcessor.Services;
 
-namespace TextumReader.TranslationJobProcessor.Jobs
+namespace TextumReader.TranslationJobProcessor.EventHandlers
 {
-    public class GetTranslationsJob
+    public class TranslationTranslationEventHandler : ITranslationEventHandler
     {
-        private readonly CosmosClient _cosmosClient;
-        private readonly ServiceBusReceiver _serviceBusReceiver;
         private readonly CognitiveServicesTranslator _cognitiveServicesTranslator;
         private readonly ProxyProvider _proxyProvider;
-        private readonly ILogger _logger;
+        private readonly ILogger<TranslationTranslationEventHandler> _logger;
 
-        public GetTranslationsJob(CosmosClient cosmosClient, ServiceBusReceiver serviceBusReceiver, CognitiveServicesTranslator cognitiveServicesTranslator, ProxyProvider proxyProvider, ILogger logger)
+        public TranslationTranslationEventHandler(CognitiveServicesTranslator cognitiveServicesTranslator, ProxyProvider proxyProvider, ILogger<TranslationTranslationEventHandler> logger)
         {
-            _cosmosClient = cosmosClient;
-            _serviceBusReceiver = serviceBusReceiver;
             _cognitiveServicesTranslator = cognitiveServicesTranslator;
             _proxyProvider = proxyProvider;
             _logger = logger;
         }
-
-        public async Task Run(string from, string to, IList<string> words, ServiceBusReceivedMessage m)
+        
+        public async Task<List<TranslationEntity>> Handle(ServiceBusReceivedMessage m)
         {
-            _logger.Information("==================== job.Run =================");
+            _logger.LogInformation("==================== TranslationTranslationEventHandler.Handle =================");
+
+            var (@from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(m.Body.ToString());
 
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArguments("headless");
@@ -69,27 +68,14 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                 }
             }
 
-            var container = _cosmosClient.GetContainer("TextumDB", "translations");
+            _logger.LogInformation("Complete job");
 
-            foreach (var translationEntity in translationEntities)
-            {
-                try
-                {
-                    await container.CreateItemAsync(translationEntity);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Information(ex, "Error occurred");
-                }
-            }
-
-            _logger.Information("Complete job");
-            await _serviceBusReceiver.CompleteMessageAsync(m);
+            return translationEntities;
         }
 
         private async Task<TranslationEntity> ProcessPage(string word, string from, string to, ChromeDriver driver, ChromeOptions chromeOptions, ServiceBusReceivedMessage m)
         {
-            _logger.Information($"Started getting translations for {word}", word);
+            _logger.LogInformation($"Started getting translations for {word}", word);
             
             if (IsElementPresent(By.CssSelector(
                 "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']")))
@@ -100,11 +86,9 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                     .Text;
                 if (text == "I agree")
                 {
-                    _logger.Information("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
+                    _logger.LogInformation("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
 
                     _proxyProvider.ExcludeProxy(chromeOptions.Proxy.HttpProxy);
-
-                    await _serviceBusReceiver.AbandonMessageAsync(m);
 
                     throw new ProxyCompromizedException($"IP is compromised {chromeOptions.Proxy.HttpProxy}");
                 }
@@ -120,7 +104,7 @@ namespace TextumReader.TranslationJobProcessor.Jobs
             }
             else
             {
-                _logger.Information($"Finished getting translations for {word}", word);
+                _logger.LogInformation($"Finished getting translations for {word}", word);
 
                 return new TranslationEntity
                 {
@@ -173,7 +157,7 @@ namespace TextumReader.TranslationJobProcessor.Jobs
                 }
             }
                 
-            _logger.Information($"Finished getting translations for {word}", word);
+            _logger.LogInformation($"Finished getting translations for {word}", word);
 
             return new TranslationEntity
             {
