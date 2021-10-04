@@ -29,23 +29,14 @@ namespace TextumReader.TranslationJobProcessor
 
             Log.Logger.Information("Application Starting");
 
-            var cosmosClient = new CosmosClient(config.GetValue<string>("CosmosDbConnectionString"),
-                new CosmosClientOptions
-                {
-                    SerializerOptions = new CosmosSerializationOptions
-                    {
-                        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-                    }
-                });
-
             var host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, collection) =>
                 {
                     collection.AddTransient<ITranslationsProcessingService, TranslationsProcessingService>();
                     collection.AddTransient<ITranslationEventHandler, TranslationTranslationEventHandler>();
-                    collection.AddSingleton(cosmosClient);
                     collection.AddSingleton<CognitiveServicesTranslator>();
                     collection.AddSingleton<ProxyProvider>();
+                    collection.AddSingleton<IConfiguration>(config);
                 })
                 .UseSerilog()
                 .Build();

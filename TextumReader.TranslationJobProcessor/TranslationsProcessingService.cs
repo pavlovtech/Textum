@@ -19,10 +19,19 @@ namespace TextumReader.TranslationJobProcessor
         private readonly ILogger<TranslationsProcessingService> _logger;
         private readonly IConfiguration _config;
 
-        public TranslationsProcessingService(ITranslationEventHandler translationEventHandler, CosmosClient cosmosClient, ILogger<TranslationsProcessingService> logger, IConfiguration config)
+        public TranslationsProcessingService(ITranslationEventHandler translationEventHandler, ILogger<TranslationsProcessingService> logger, IConfiguration config)
         {
             _translationEventHandler = translationEventHandler;
-            _cosmosClient = cosmosClient;
+
+            _cosmosClient = new CosmosClient(config.GetValue<string>("CosmosDbConnectionString"),
+                new CosmosClientOptions
+                {
+                    SerializerOptions = new CosmosSerializationOptions
+                    {
+                        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+                    }
+                });
+
             _logger = logger;
             _config = config;
         }
