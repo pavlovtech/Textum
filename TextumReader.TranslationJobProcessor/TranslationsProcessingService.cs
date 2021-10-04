@@ -6,8 +6,8 @@ using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using TextumReader.GoogleTranslateScrapper;
 using TextumReader.TranslationJobProcessor.Abstract;
+using TextumReader.TranslationJobProcessor.Exceptions;
 using TextumReader.TranslationJobProcessor.Models;
 
 namespace TextumReader.TranslationJobProcessor
@@ -58,7 +58,7 @@ namespace TextumReader.TranslationJobProcessor
 
                             await receiver.CompleteMessageAsync(m);
                         }
-                        catch (ProxyCompromizedException e)
+                        catch (Compromised e)
                         {
                             await receiver.AbandonMessageAsync(m);
                             _logger.LogError(e, "IP is compromised");
