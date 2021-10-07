@@ -86,7 +86,7 @@ namespace TextumReader.TranslationJobProcessor.EventHandlers
                     .Text;
                 if (text == "I agree")
                 {
-                    _logger.LogInformation("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
+                    _logger.LogInformation("IP is compromised {HttpProxy}", chromeOptions.Proxy);
 
                     _proxyProvider.ExcludeProxy(chromeOptions.Proxy.HttpProxy);
 

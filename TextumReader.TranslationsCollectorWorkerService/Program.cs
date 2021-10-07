@@ -61,7 +61,8 @@ namespace TextumReader.TranslationsCollectorWorkerService
                     services.AddHostedService<GoogleTranslateScraperWorker>();
                     services.AddApplicationInsightsTelemetryWorkerService();
                 })
-                .UseSerilog();
+                .UseSerilog()
+                .UseConsoleLifetime();
         }
 
         private static void BuildConfig(IConfigurationBuilder builder)

@@ -22,7 +22,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
         private readonly ITranslationEventHandler _translationEventHandler;
-        private const int MaxMessages = 30;
+        private const int MaxMessages = 10;
 
         public GoogleTranslateScraperWorker(
             CosmosClient cosmosClient,
@@ -41,35 +41,43 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("ExecuteAsync Started");
+
             var msgs = await _receiver.ReceiveMessagesAsync(MaxMessages, null, stoppingToken);
+
+            _telemetryClient.TrackEvent("Service Bus messages received");
 
             while (msgs.Count > 0 && !stoppingToken.IsCancellationRequested)
             {
-                var tasks = msgs.Select(m =>
+                var tasks = msgs.Select(message =>
                 {
                     var task = new Task(async () =>
                     {
-                        using (_telemetryClient.StartOperation<RequestTelemetry>("GoogleTranslateScraperWorker.ExecuteAsync"))
+                        using (_telemetryClient.StartOperation<RequestTelemetry>("Translations scraping"))
                         {
-                            _logger.LogInformation("ExecuteAsync Started");
-
                             try
                             {
-                                var translationEntities = await _translationEventHandler.Handle(m);
+                                var translationEntities = _translationEventHandler.Handle(message);
 
                                 await SaveTranslations(translationEntities);
 
-                                await _receiver.CompleteMessageAsync(m, stoppingToken);
+                                await _receiver.CompleteMessageAsync(message, stoppingToken);
+                                _telemetryClient.TrackEvent("Message completed");
                             }
                             catch (CompromisedException e)
                             {
-                                await _receiver.AbandonMessageAsync(m, null, stoppingToken);
+                                await _receiver.AbandonMessageAsync(message, null, stoppingToken);
                                 _telemetryClient.TrackException(e);
                                 _logger.LogError(e, "IP is compromised");
                             }
+                            catch (ServiceBusException ex)
+                            {
+                                _logger.LogError(ex, "Error occurred");
+                                _telemetryClient.TrackException(ex);
+                            }
                             catch (Exception ex)
                             {
-                                await _receiver.AbandonMessageAsync(m, null, stoppingToken);
+                                await _receiver.AbandonMessageAsync(message, null, stoppingToken);
                                 _logger.LogError(ex, "Error occurred");
                                 _telemetryClient.TrackException(ex);
                             }
@@ -92,6 +100,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
             var container = _cosmosClient.GetContainer("TextumDB", "translations");
 
             foreach (var translationEntity in translationEntities)
+            {
                 try
                 {
                     await container.CreateItemAsync(translationEntity);
@@ -99,7 +108,9 @@ namespace TextumReader.TranslationsCollectorWorkerService
                 catch (Exception ex)
                 {
                     _logger.LogInformation(ex, "Error occurred");
+                    _telemetryClient.TrackException(ex);
                 }
+            }
         }
     }
 }

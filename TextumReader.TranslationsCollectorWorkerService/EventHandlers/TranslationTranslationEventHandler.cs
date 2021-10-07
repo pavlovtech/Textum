@@ -24,68 +24,75 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
         private readonly CognitiveServicesTranslator _cognitiveServicesTranslator;
         private readonly ILogger<TranslationTranslationEventHandler> _logger;
         private readonly ProxyProvider _proxyProvider;
+        private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
 
-        public TranslationTranslationEventHandler(TelemetryClient telemetryClient,
-            CognitiveServicesTranslator cognitiveServicesTranslator, ProxyProvider proxyProvider,
+        public TranslationTranslationEventHandler(
+            ServiceBusReceiver receiver,
+            TelemetryClient telemetryClient,
+            CognitiveServicesTranslator cognitiveServicesTranslator,
+            ProxyProvider proxyProvider,
             ILogger<TranslationTranslationEventHandler> logger)
         {
+            _receiver = receiver;
             _telemetryClient = telemetryClient;
             _cognitiveServicesTranslator = cognitiveServicesTranslator;
             _proxyProvider = proxyProvider;
             _logger = logger;
         }
 
-        public async Task<List<TranslationEntity>> Handle(ServiceBusReceivedMessage m)
+        public List<TranslationEntity> Handle(ServiceBusReceivedMessage message)
         {
-            using (_telemetryClient.StartOperation<RequestTelemetry>("TranslationTranslationEventHandler.Handle"))
+            _telemetryClient.TrackEvent("TranslationTranslationEventHandler.Handle called");
+
+            _logger.LogInformation(
+                "==================== TranslationTranslationEventHandler.Handle =================");
+
+            var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
+
+            var chromeOptions = new ChromeOptions();
+            chromeOptions.AddArguments("headless");
+
+            chromeOptions.Proxy = _proxyProvider.GetProxy();
+
+            var translationEntities = new List<TranslationEntity>();
+
+            using (var driver = new ChromeDriver(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                chromeOptions))
             {
-                _logger.LogInformation(
-                    "==================== TranslationTranslationEventHandler.Handle =================");
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
 
-                var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(m.Body.ToString());
-
-                var chromeOptions = new ChromeOptions();
-                chromeOptions.AddArguments("headless");
-
-                chromeOptions.Proxy = _proxyProvider.GetProxy();
-
-                var translationEntities = new List<TranslationEntity>();
-
-                using (var driver = new ChromeDriver(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                    chromeOptions))
+                for (var i = 0; i < words.Count; i++)
                 {
-                    driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
+                    driver.Navigate()
+                        .GoToUrl($"https://translate.google.com/?sl={from}&tl={to}&text={words[i]}&op=translate");
 
-                    for (var i = 0; i < words.Count; i++)
+                    var result = ProcessPage(words[i], from, to, driver, chromeOptions, message);
+
+                    if (result.Translations != null)
                     {
-                        driver.Navigate()
-                            .GoToUrl($"https://translate.google.com/?sl={from}&tl={to}&text={words[i]}&op=translate");
+                        var translations = result.Translations
+                            .Where(t => t.Frequency == "Common" || t.Frequency == "Uncommon").ToList();
 
-                        var result = await ProcessPage(words[i], from, to, driver, chromeOptions, m);
-
-                        if (result.Translations != null)
-                        {
-                            var translations = result.Translations
-                                .Where(t => t.Frequency == "Common" || t.Frequency == "Uncommon").ToList();
-
-                            foreach (var trans in translations)
-                                trans.Examples = _cognitiveServicesTranslator
-                                    .GetExamples(@from, to, result.Word, trans.Translation).Take(3);
-                        }
-
-                        //_translationService.Insert(result);
-                        translationEntities.Add(result);
+                        foreach (var trans in translations)
+                            trans.Examples = _cognitiveServicesTranslator
+                                .GetExamples(@from, to, result.Word, trans.Translation).Take(3);
                     }
+
+                    //_translationService.Insert(result);
+                    translationEntities.Add(result);
+                    _telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
+                    _receiver.RenewMessageLockAsync(message);
                 }
-
-                _logger.LogInformation("Complete job");
-
-                return translationEntities;
             }
+
+            _logger.LogInformation("Complete job");
+            _telemetryClient.TrackTrace($"Finished processing {translationEntities.Count} words");
+
+            return translationEntities;
         }
 
-        private async Task<TranslationEntity> ProcessPage(string word, string from, string to, ChromeDriver driver,
+        private TranslationEntity ProcessPage(string word, string from, string to, ChromeDriver driver,
             ChromeOptions chromeOptions, ServiceBusReceivedMessage m)
         {
             _logger.LogInformation($"Started getting translations for {word}", word);
@@ -99,7 +106,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                     .Text;
                 if (text == "I agree")
                 {
-                    _logger.LogInformation("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
+                    _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
 
                     _proxyProvider.ExcludeProxy(chromeOptions.Proxy.HttpProxy);
 
@@ -115,7 +122,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
                 if (text == "Translation error")
                 {
-                    _logger.LogInformation("IP is compromised {@proxy}", chromeOptions.Proxy);
+                    _logger.LogError("IP is compromised {proxy}", chromeOptions.Proxy);
 
                     _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
 
@@ -133,7 +140,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             }
             else
             {
-                _logger.LogInformation("Finished getting translations for {@word}", word);
+                _logger.LogInformation("Finished getting translations for {word}", word);
 
                 return new TranslationEntity
                 {
@@ -184,7 +191,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                     });
             }
 
-            _logger.LogInformation("Finished getting translations for {@word}", word);
+            _logger.LogInformation("Finished getting translations for {word}", word);
 
             return new TranslationEntity
             {
