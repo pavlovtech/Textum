@@ -7,6 +7,7 @@ using Azure.Messaging.ServiceBus;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
@@ -21,31 +22,35 @@ namespace TextumReader.TranslationsCollectorWorkerService
         private readonly ILogger<GoogleTranslateScraperWorker> _logger;
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
+        private readonly IConfiguration _config;
         private readonly ITranslationEventHandler _translationEventHandler;
-        private const int MaxMessages = 10;
+        private int _maxMessages;
 
         public GoogleTranslateScraperWorker(
             CosmosClient cosmosClient,
             ServiceBusReceiver receiver,
             ILogger<GoogleTranslateScraperWorker> logger,
             ITranslationEventHandler translationEventHandler,
-            TelemetryClient telemetryClient)
+            TelemetryClient telemetryClient,
+            IConfiguration config)
         {
             _logger = logger;
             _translationEventHandler = translationEventHandler;
             _telemetryClient = telemetryClient;
+            _config = config;
 
             _cosmosClient = cosmosClient;
             _receiver = receiver;
+            _maxMessages = config.GetValue<int>("MaxMessages");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("ExecuteAsync Started");
 
-            var msgs = await _receiver.ReceiveMessagesAsync(MaxMessages, null, stoppingToken);
+            var msgs = await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken);
 
-            _telemetryClient.TrackEvent("Service Bus messages received");
+            //_telemetryClient.TrackEvent("Service Bus messages received");
 
             while (msgs.Count > 0 && !stoppingToken.IsCancellationRequested)
             {
@@ -62,12 +67,12 @@ namespace TextumReader.TranslationsCollectorWorkerService
                                 await SaveTranslations(translationEntities);
 
                                 await _receiver.CompleteMessageAsync(message, stoppingToken);
-                                _telemetryClient.TrackEvent("Message completed");
+                                //_telemetryClient.TrackEvent("Message completed");
                             }
                             catch (CompromisedException e)
                             {
                                 await _receiver.AbandonMessageAsync(message, null, stoppingToken);
-                                _telemetryClient.TrackException(e);
+                                //_telemetryClient.TrackException(e);
                                 _logger.LogError(e, "IP is compromised");
                             }
                             catch (ServiceBusException ex)
@@ -91,7 +96,9 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                 await Task.WhenAll(tasks);
 
-                msgs = await _receiver.ReceiveMessagesAsync(MaxMessages, null, stoppingToken);
+                Console.Clear();
+
+                msgs = await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken);
             }
         }
 

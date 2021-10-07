@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using HtmlAgilityPack;
+using Konsole;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
@@ -16,6 +15,7 @@ using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
 using TextumReader.TranslationsCollectorWorkerService.Models;
 using TextumReader.TranslationsCollectorWorkerService.Services;
+using LogLevel = OpenQA.Selenium.LogLevel;
 
 namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 {
@@ -43,24 +43,46 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
         public List<TranslationEntity> Handle(ServiceBusReceivedMessage message)
         {
-            _telemetryClient.TrackEvent("TranslationTranslationEventHandler.Handle called");
+            //_telemetryClient.TrackEvent("TranslationTranslationEventHandler.Handle called");
 
-            _logger.LogInformation(
-                "==================== TranslationTranslationEventHandler.Handle =================");
+            //_logger.LogInformation("==================== TranslationTranslationEventHandler.Handle =================");
 
             var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
 
+            ChromeDriverService service = ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            service.EnableVerboseLogging = false;
+            service.SuppressInitialDiagnosticInformation = true;
+            service.HideCommandPromptWindow = true;
+
             var chromeOptions = new ChromeOptions();
-            chromeOptions.AddArguments("headless");
+            chromeOptions.AddArgument("--window-size=1920,1080");
+            chromeOptions.AddArgument("--no-sandbox");
+            //chromeOptions.AddArgument("--headless");
+            chromeOptions.AddArgument("--disable-gpu");
+            chromeOptions.AddArgument("--disable-crash-reporter");
+            chromeOptions.AddArgument("--disable-extensions");
+            chromeOptions.AddArgument("--disable-in-process-stack-traces");
+            chromeOptions.AddArgument("--disable-logging");
+            chromeOptions.AddArgument("--disable-dev-shm-usage");
+            chromeOptions.AddArgument("--log-level=3");
+            chromeOptions.AddArgument("--output=/dev/null");
 
             chromeOptions.Proxy = _proxyProvider.GetProxy();
+            /*chromeOptions.SetLoggingPreference(LogType.Browser, LogLevel.Severe);
+            chromeOptions.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
+            chromeOptions.SetLoggingPreference(LogType.Profiler, LogLevel.Severe);
+            chromeOptions.SetLoggingPreference(LogType.Client, LogLevel.Severe);
+            chromeOptions.SetLoggingPreference(LogType.Server, LogLevel.Severe);*/
+            
 
             var translationEntities = new List<TranslationEntity>();
 
-            using (var driver = new ChromeDriver(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+            using (var driver = new ChromeDriver(service,
                 chromeOptions))
             {
                 driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
+
+                var pb = new ProgressBar(PbStyle.SingleLine, words.Count);
 
                 for (var i = 0; i < words.Count; i++)
                 {
@@ -81,13 +103,15 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
                     //_translationService.Insert(result);
                     translationEntities.Add(result);
-                    _telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
+                    //_telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
                     _receiver.RenewMessageLockAsync(message);
+
+                    pb.Refresh(i + 1, $"{words[i]}");
                 }
             }
 
             _logger.LogInformation("Complete job");
-            _telemetryClient.TrackTrace($"Finished processing {translationEntities.Count} words");
+            //_telemetryClient.TrackTrace($"Finished processing {translationEntities.Count} words");
 
             return translationEntities;
         }

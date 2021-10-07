@@ -25,7 +25,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(config)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
+                //.WriteTo.Console()
                 .WriteTo.ApplicationInsights(TelemetryConfiguration.Active, TelemetryConverter.Traces)
                 .CreateLogger();
 
@@ -41,7 +41,10 @@ namespace TextumReader.TranslationsCollectorWorkerService
                 {
                     var client = new ServiceBusClient(config.GetValue<string>("ServiceBusConnectionString"));
 
-                    var receiver = client.CreateReceiver(config.GetValue<string>("QueueName"));
+                    var receiver = client.CreateReceiver(config.GetValue<string>("QueueName"), new ServiceBusReceiverOptions()
+                    {
+                        PrefetchCount = 100
+                    });
 
                     var cosmosClient = new CosmosClient(config.GetValue<string>("CosmosDbConnectionString"),
                         new CosmosClientOptions
