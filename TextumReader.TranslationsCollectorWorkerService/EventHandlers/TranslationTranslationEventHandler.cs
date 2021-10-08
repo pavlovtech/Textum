@@ -7,6 +7,8 @@ using Azure.Messaging.ServiceBus;
 using HtmlAgilityPack;
 using Konsole;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
@@ -23,6 +25,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
     {
         private readonly CognitiveServicesTranslator _cognitiveServicesTranslator;
         private readonly ILogger<TranslationTranslationEventHandler> _logger;
+        private readonly IConfiguration _config;
         private readonly ProxyProvider _proxyProvider;
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
@@ -32,13 +35,15 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             TelemetryClient telemetryClient,
             CognitiveServicesTranslator cognitiveServicesTranslator,
             ProxyProvider proxyProvider,
-            ILogger<TranslationTranslationEventHandler> logger)
+            ILogger<TranslationTranslationEventHandler> logger,
+            IConfiguration config)
         {
             _receiver = receiver;
             _telemetryClient = telemetryClient;
             _cognitiveServicesTranslator = cognitiveServicesTranslator;
             _proxyProvider = proxyProvider;
             _logger = logger;
+            _config = config;
         }
 
         public List<TranslationEntity> Handle(ServiceBusReceivedMessage message)
@@ -47,73 +52,116 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             //_logger.LogInformation("==================== TranslationTranslationEventHandler.Handle =================");
 
-            var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
-
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-            service.EnableVerboseLogging = false;
-            service.SuppressInitialDiagnosticInformation = true;
-            service.HideCommandPromptWindow = true;
-
-            var chromeOptions = new ChromeOptions();
-            chromeOptions.AddArgument("--window-size=1920,1080");
-            chromeOptions.AddArgument("--no-sandbox");
-            //chromeOptions.AddArgument("--headless");
-            chromeOptions.AddArgument("--disable-gpu");
-            chromeOptions.AddArgument("--disable-crash-reporter");
-            chromeOptions.AddArgument("--disable-extensions");
-            chromeOptions.AddArgument("--disable-in-process-stack-traces");
-            chromeOptions.AddArgument("--disable-logging");
-            chromeOptions.AddArgument("--disable-dev-shm-usage");
-            chromeOptions.AddArgument("--log-level=3");
-            chromeOptions.AddArgument("--output=/dev/null");
-
-            chromeOptions.Proxy = _proxyProvider.GetProxy();
-            /*chromeOptions.SetLoggingPreference(LogType.Browser, LogLevel.Severe);
-            chromeOptions.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
-            chromeOptions.SetLoggingPreference(LogType.Profiler, LogLevel.Severe);
-            chromeOptions.SetLoggingPreference(LogType.Client, LogLevel.Severe);
-            chromeOptions.SetLoggingPreference(LogType.Server, LogLevel.Severe);*/
-            
-
-            var translationEntities = new List<TranslationEntity>();
-
-            using (var driver = new ChromeDriver(service,
-                chromeOptions))
+            using (var handleEventOperation = _telemetryClient.StartOperation<DependencyTelemetry>("TranslationTranslationEventHandler.Handle"))
             {
-                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
-
-                var pb = new ProgressBar(PbStyle.SingleLine, words.Count);
-
-                for (var i = 0; i < words.Count; i++)
+                try
                 {
-                    driver.Navigate()
-                        .GoToUrl($"https://translate.google.com/?sl={from}&tl={to}&text={words[i]}&op=translate");
+                    var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
 
-                    var result = ProcessPage(words[i], from, to, driver, chromeOptions, message);
+                    ChromeDriverService service =
+                        ChromeDriverService.CreateDefaultService(
+                            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                    service.EnableVerboseLogging = false;
+                    service.SuppressInitialDiagnosticInformation = true;
+                    service.HideCommandPromptWindow = true;
 
-                    if (result.Translations != null)
+                    var chromeOptions = new ChromeOptions();
+                    chromeOptions.AddArgument("--window-size=1920,1080");
+                    chromeOptions.AddArgument("--no-sandbox");
+                    
+                    chromeOptions.AddArgument("--disable-gpu");
+                    chromeOptions.AddArgument("--disable-crash-reporter");
+                    chromeOptions.AddArgument("--disable-extensions");
+                    chromeOptions.AddArgument("--disable-in-process-stack-traces");
+                    chromeOptions.AddArgument("--disable-logging");
+                    chromeOptions.AddArgument("--disable-dev-shm-usage");
+                    chromeOptions.AddArgument("--log-level=3");
+                    chromeOptions.AddArgument("--output=/dev/null");
+
+                    if (_config.GetValue<bool>("UserProxy"))
                     {
-                        var translations = result.Translations
-                            .Where(t => t.Frequency == "Common" || t.Frequency == "Uncommon").ToList();
-
-                        foreach (var trans in translations)
-                            trans.Examples = _cognitiveServicesTranslator
-                                .GetExamples(@from, to, result.Word, trans.Translation).Take(3);
+                        chromeOptions.Proxy = _proxyProvider.GetProxy();
+                    }
+                    
+                    if (_config.GetValue<bool>("Headless"))
+                    {
+                        chromeOptions.AddArgument("--headless");
                     }
 
-                    //_translationService.Insert(result);
-                    translationEntities.Add(result);
-                    //_telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
-                    _receiver.RenewMessageLockAsync(message);
+                    /*chromeOptions.SetLoggingPreference(LogType.Browser, LogLevel.Severe);
+                    chromeOptions.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
+                    chromeOptions.SetLoggingPreference(LogType.Profiler, LogLevel.Severe);
+                    chromeOptions.SetLoggingPreference(LogType.Client, LogLevel.Severe);
+                    chromeOptions.SetLoggingPreference(LogType.Server, LogLevel.Severe);*/
 
-                    pb.Refresh(i + 1, $"{words[i]}");
+
+                    var translationEntities = new List<TranslationEntity>();
+
+                    using (var driver = new ChromeDriver(service,
+                        chromeOptions))
+                    {
+                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
+
+                        var pb = new ProgressBar(PbStyle.SingleLine, words.Count);
+
+                        for (var i = 0; i < words.Count; i++)
+                        {
+                            using (var oneWordProcessingOperation =
+                                _telemetryClient.StartOperation<DependencyTelemetry>(
+                                    "One word processing"))
+                            {
+                                try
+                                {
+                                    driver.Navigate()
+                                        .GoToUrl(
+                                            $"https://translate.google.com/?sl={from}&tl={to}&text={words[i]}&op=translate");
+
+                                    var result = ProcessPage(words[i], from, to, driver, chromeOptions, message);
+
+                                    if (result.Translations != null)
+                                    {
+                                        var translations = result.Translations
+                                            .Where(t => t.Frequency == "Common" || t.Frequency == "Uncommon").ToList();
+
+                                        foreach (var trans in translations)
+                                        {
+                                            trans.Examples = _cognitiveServicesTranslator
+                                                .GetExamples(@from, to, result.Word, trans.Translation).Take(3);
+                                        }
+                                    }
+
+                                    translationEntities.Add(result);
+                                    //_telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
+                                    _receiver.RenewMessageLockAsync(message);
+
+                                    pb.Refresh(i + 1, $"{words[i]}");
+                                }
+                                catch (Exception e)
+                                {
+                                    oneWordProcessingOperation.Telemetry.Success = false;
+                                    _telemetryClient.TrackException(e);
+                                    throw;
+                                }
+
+                                oneWordProcessingOperation.Telemetry.Success = true;
+                            }
+                        }
+                    }
+
+                    _logger.LogInformation("Complete job");
+                    //_telemetryClient.TrackTrace($"Finished processing {translationEntities.Count} words");
+
+                    handleEventOperation.Telemetry.Success = true;
+
+                    return translationEntities;
+                }
+                catch (Exception e)
+                {
+                    handleEventOperation.Telemetry.Success = false;
+                    _telemetryClient.TrackException(e);
+                    throw;
                 }
             }
-
-            _logger.LogInformation("Complete job");
-            //_telemetryClient.TrackTrace($"Finished processing {translationEntities.Count} words");
-
-            return translationEntities;
         }
 
         private TranslationEntity ProcessPage(string word, string from, string to, ChromeDriver driver,
@@ -132,7 +180,10 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 {
                     _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
 
-                    _proxyProvider.ExcludeProxy(chromeOptions.Proxy.HttpProxy);
+                    if (_config.GetValue<bool>("UserProxy"))
+                    {
+                        _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
+                    }
 
                     throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.HttpProxy ?? "local"}");
                 }
@@ -148,7 +199,10 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 {
                     _logger.LogError("IP is compromised {proxy}", chromeOptions.Proxy);
 
-                    _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
+                    if (_config.GetValue<bool>("UserProxy"))
+                    {
+                        _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
+                    }
 
                     throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.HttpProxy ?? "local"}");
                 }
