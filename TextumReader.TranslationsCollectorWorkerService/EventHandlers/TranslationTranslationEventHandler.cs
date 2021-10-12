@@ -7,6 +7,7 @@ using Azure.Messaging.ServiceBus;
 using HtmlAgilityPack;
 using Konsole;
 using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
@@ -21,6 +22,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 {
     public class TranslationTranslationEventHandler : ITranslationEventHandler
     {
+        private readonly IConfiguration _config;
         private readonly CognitiveServicesTranslator _cognitiveServicesTranslator;
         private readonly ILogger<TranslationTranslationEventHandler> _logger;
         private readonly ProxyProvider _proxyProvider;
@@ -32,8 +34,10 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             TelemetryClient telemetryClient,
             CognitiveServicesTranslator cognitiveServicesTranslator,
             ProxyProvider proxyProvider,
-            ILogger<TranslationTranslationEventHandler> logger)
+            ILogger<TranslationTranslationEventHandler> logger,
+            IConfiguration config)
         {
+            _config = config;
             _receiver = receiver;
             _telemetryClient = telemetryClient;
             _cognitiveServicesTranslator = cognitiveServicesTranslator;
@@ -57,7 +61,6 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArgument("--window-size=1920,1080");
             chromeOptions.AddArgument("--no-sandbox");
-            //chromeOptions.AddArgument("--headless");
             chromeOptions.AddArgument("--disable-gpu");
             chromeOptions.AddArgument("--disable-crash-reporter");
             chromeOptions.AddArgument("--disable-extensions");
@@ -67,13 +70,17 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             chromeOptions.AddArgument("--log-level=3");
             chromeOptions.AddArgument("--output=/dev/null");
 
-            chromeOptions.Proxy = _proxyProvider.GetProxy();
-            /*chromeOptions.SetLoggingPreference(LogType.Browser, LogLevel.Severe);
-            chromeOptions.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
-            chromeOptions.SetLoggingPreference(LogType.Profiler, LogLevel.Severe);
-            chromeOptions.SetLoggingPreference(LogType.Client, LogLevel.Severe);
-            chromeOptions.SetLoggingPreference(LogType.Server, LogLevel.Severe);*/
-            
+
+            if (_config.GetValue<bool>("UserProxy"))
+            {
+                chromeOptions.Proxy = _proxyProvider.GetProxy();
+            }
+
+            if (_config.GetValue<bool>("Headless"))
+            {
+                chromeOptions.AddArgument("--headless");
+            }
+
 
             var translationEntities = new List<TranslationEntity>();
 
@@ -132,7 +139,10 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 {
                     _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
 
-                    _proxyProvider.ExcludeProxy(chromeOptions.Proxy.HttpProxy);
+                    if (_config.GetValue<bool>("UserProxy"))
+                    {
+                        _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
+                    }
 
                     throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.HttpProxy ?? "local"}");
                 }
@@ -148,7 +158,10 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 {
                     _logger.LogError("IP is compromised {proxy}", chromeOptions.Proxy);
 
-                    _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
+                    if (_config.GetValue<bool>("UserProxy"))
+                    {
+                        _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
+                    }
 
                     throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.HttpProxy ?? "local"}");
                 }
