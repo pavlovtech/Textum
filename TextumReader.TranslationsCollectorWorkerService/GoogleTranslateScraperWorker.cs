@@ -94,14 +94,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
                     return task;
                 });
 
-                try
-                {
-                    await Task.WhenAll(tasks);
-                }
-                catch (Exception e)
-                {
-                    _telemetryClient.TrackException(e);
-                }
+                await Task.WhenAll(tasks);
 
                 Console.Clear();
 
