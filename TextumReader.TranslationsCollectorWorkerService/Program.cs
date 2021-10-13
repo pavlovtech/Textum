@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Azure.Messaging.ServiceBus;
+using Konsole;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
@@ -41,11 +42,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
                 {
                     var client = new ServiceBusClient(config.GetValue<string>("ServiceBusConnectionString"));
 
-                    var receiver = client.CreateReceiver(config.GetValue<string>("QueueName"),
-                        new ServiceBusReceiverOptions()
-                        {
-                            PrefetchCount = 100
-                        });
+                    var receiver = client.CreateReceiver(config.GetValue<string>("QueueName"));
 
                     var cosmosClient = new CosmosClient(config.GetValue<string>("CosmosDbConnectionString"),
                         new CosmosClientOptions
@@ -64,6 +61,14 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                     services.AddHostedService<GoogleTranslateScraperWorker>();
                     services.AddApplicationInsightsTelemetryWorkerService();
+
+                    services.Configure<HostOptions>(
+                        opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));
+
+
+                    var console = Window.OpenBox("translations", 120, 29);
+
+                    services.AddSingleton<IConsole>(console);
                 })
                 .UseSerilog();
         }

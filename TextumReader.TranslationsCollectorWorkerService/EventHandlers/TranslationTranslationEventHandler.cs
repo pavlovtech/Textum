@@ -14,10 +14,13 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
 using TextumReader.TranslationsCollectorWorkerService.Models;
 using TextumReader.TranslationsCollectorWorkerService.Services;
+using SeleniumExtras.WaitHelpers;
+using ExpectedConditions = SeleniumExtras.WaitHelpers.ExpectedConditions;
 using LogLevel = OpenQA.Selenium.LogLevel;
 
 namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
@@ -30,6 +33,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
         private readonly ProxyProvider _proxyProvider;
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
+        private IConsole _console;
 
         public TranslationTranslationEventHandler(
             ServiceBusReceiver receiver,
@@ -37,9 +41,11 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             CognitiveServicesTranslator cognitiveServicesTranslator,
             ProxyProvider proxyProvider,
             ILogger<TranslationTranslationEventHandler> logger,
-            IConfiguration config)
+            IConfiguration config,
+            IConsole console)
         {
             _config = config;
+            _console = console;
             _receiver = receiver;
             _telemetryClient = telemetryClient;
             _cognitiveServicesTranslator = cognitiveServicesTranslator;
@@ -52,21 +58,21 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             using (var handleEventOperation =
                 _telemetryClient.StartOperation<DependencyTelemetry>("TranslationTranslationEventHandler.Handle"))
             {
+               
+                var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
+
+                var service = ConfigureChrome(out var chromeOptions);
+
+                var translationEntities = new List<TranslationEntity>();
+
+                var pb = new ProgressBar(_console, PbStyle.SingleLine, words.Count);
+
                 try
                 {
-                    var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
-
-                    var service = ConfigureChrome(out var chromeOptions);
-
-
-                    var translationEntities = new List<TranslationEntity>();
-
                     using (var driver = new ChromeDriver(service,
                         chromeOptions))
                     {
-                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
-
-                        var pb = new ProgressBar(PbStyle.SingleLine, words.Count);
+                        //driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
 
                         for (var i = 0; i < words.Count; i++)
                         {
@@ -78,7 +84,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                                 throw new ApplicationException("Cancellation requested");
                             }
 
-                            var result = GetTranslations(message, driver, @from, to, words, i, chromeOptions);
+                            var result = GetTranslations(driver, @from, to, words, i, chromeOptions);
 
                             //_translationService.Insert(result);
                             translationEntities.Add(result);
@@ -97,14 +103,14 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 }
                 catch (Exception e)
                 {
+                    pb.Refresh(0, $"{e.Message}");
                     handleEventOperation.Telemetry.Success = false;
                     throw;
                 }
             }
         }
 
-        private TranslationEntity GetTranslations(ServiceBusReceivedMessage message, ChromeDriver driver, string @from,
-            string to, IList<string> words, int i, ChromeOptions chromeOptions)
+        private TranslationEntity GetTranslations(ChromeDriver driver, string @from, string to, IList<string> words, int i, ChromeOptions chromeOptions)
         {
             using var oneWordProcessingOperation = _telemetryClient.StartOperation<DependencyTelemetry>("One word processing");
 
@@ -113,7 +119,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 driver.Navigate()
                     .GoToUrl($"https://translate.google.com/?sl={@from}&tl={to}&text={words[i]}&op=translate");
 
-                var result = ProcessPage(words[i], @from, to, driver, chromeOptions, message);
+                var result = ProcessPage(words[i], @from, to, driver, chromeOptions);
 
                 if (result.Translations != null)
                 {
@@ -169,18 +175,16 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             return service;
         }
 
-        private TranslationEntity ProcessPage(string word, string from, string to, ChromeDriver driver,
-            ChromeOptions chromeOptions, ServiceBusReceivedMessage m)
+        private TranslationEntity ProcessPage(string word, string from, string to, ChromeDriver driver, ChromeOptions chromeOptions)
         {
             _logger.LogInformation($"Started getting translations for {word}", word);
 
-            if (IsElementPresent(By.CssSelector(
-                "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']")))
+            /*if (IsElementPresent(By.CssSelector(
+                "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']"), driver))
             {
-                var text = driver
-                    .FindElement(By.CssSelector(
-                        "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']"))
-                    .Text;
+                var text = wait.Until(ExpectedConditions.ElementExists(By.CssSelector(
+                    "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']"))).Text;
+
                 if (text == "I agree")
                 {
                     _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
@@ -192,13 +196,12 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
                     throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.HttpProxy ?? "local"}");
                 }
-            }
+            }*/
 
-            if (IsElementPresent(By.CssSelector("div[class='QGDZGb']")))
+            if (IsElementPresent(By.CssSelector("div[class='QGDZGb']"), driver))
             {
-                var text = driver
-                    .FindElement(By.CssSelector("div[class='QGDZGb']"))
-                    .Text;
+                var textWait = new WebDriverWait(driver, TimeSpan.FromSeconds(2));
+                var text = textWait.Until(ExpectedConditions.ElementExists(By.CssSelector("div[class='QGDZGb']"))).Text;
 
                 if (text == "Translation error")
                 {
@@ -213,11 +216,14 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 }
             }
 
-            var mainTranslation = driver.FindElementByClassName("VIiyi").Text;
+            string mainTranslation;
+
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+            mainTranslation = wait.Until(ExpectedConditions.ElementIsVisible(By.ClassName("VIiyi"))).Text;
 
             // if no translations except main
             var doc = "";
-            if (IsElementPresent(By.CssSelector("div[class='I87fLc oLovEc XzOhkf']")))
+            if (IsElementPresent(By.CssSelector("div[class='I87fLc oLovEc XzOhkf']"), driver))
             {
                 doc = driver.FindElement(By.CssSelector("div[class='I87fLc oLovEc XzOhkf']")).GetAttribute("innerHTML");
             }
@@ -286,14 +292,16 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 Id = $"{from}-{to}-{word}"
             };
 
-            bool IsElementPresent(By by)
+            bool IsElementPresent(By by, ChromeDriver driver)
             {
                 try
                 {
-                    driver.FindElement(by);
+                    var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(2));
+                    wait.Until(ExpectedConditions.ElementExists(by));
+                    //driver.FindElement(by);
                     return true;
                 }
-                catch (NoSuchElementException)
+                catch (Exception ex)
                 {
                     return false;
                 }
