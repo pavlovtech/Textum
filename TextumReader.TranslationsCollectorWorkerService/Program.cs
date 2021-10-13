@@ -41,10 +41,11 @@ namespace TextumReader.TranslationsCollectorWorkerService
                 {
                     var client = new ServiceBusClient(config.GetValue<string>("ServiceBusConnectionString"));
 
-                    var receiver = client.CreateReceiver(config.GetValue<string>("QueueName"), new ServiceBusReceiverOptions()
-                    {
-                        PrefetchCount = 100
-                    });
+                    var receiver = client.CreateReceiver(config.GetValue<string>("QueueName"),
+                        new ServiceBusReceiverOptions()
+                        {
+                            PrefetchCount = 100
+                        });
 
                     var cosmosClient = new CosmosClient(config.GetValue<string>("CosmosDbConnectionString"),
                         new CosmosClientOptions
@@ -64,8 +65,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
                     services.AddHostedService<GoogleTranslateScraperWorker>();
                     services.AddApplicationInsightsTelemetryWorkerService();
                 })
-                .UseSerilog()
-                .UseConsoleLifetime();
+                .UseSerilog();
         }
 
         private static void BuildConfig(IConfigurationBuilder builder)

@@ -25,6 +25,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
         private readonly IConfiguration _config;
         private readonly ITranslationEventHandler _translationEventHandler;
         private int _maxMessages;
+        private IEnumerable<Task> _currentTasks;
 
         public GoogleTranslateScraperWorker(
             CosmosClient cosmosClient,
@@ -46,60 +47,78 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("ExecuteAsync Started");
-
-            var msgs = await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken);
-
-            //_telemetryClient.TrackEvent("Service Bus messages received");
-
-            while (msgs.Count > 0 && !stoppingToken.IsCancellationRequested)
+            try
             {
-                var tasks = msgs.Select(message =>
+                _logger.LogInformation("ExecuteAsync Started");
+
+                var msgs = await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken);
+
+                //_telemetryClient.TrackEvent("Service Bus messages received");
+
+                while (msgs.Count > 0 && !stoppingToken.IsCancellationRequested)
                 {
-                    var task = new Task(async () =>
+                    _currentTasks = msgs.Select(message =>
                     {
-                        using (_telemetryClient.StartOperation<RequestTelemetry>("Translations scraping"))
+                        var task = new Task(async () =>
                         {
-                            try
+                            using (_telemetryClient.StartOperation<RequestTelemetry>("Translations scraping"))
                             {
-                                var translationEntities = _translationEventHandler.Handle(message);
+                                try
+                                {
+                                    var translationEntities = _translationEventHandler.Handle(message, stoppingToken);
 
-                                await SaveTranslations(translationEntities);
+                                    await _receiver.RenewMessageLockAsync(message, stoppingToken);
 
-                                await _receiver.CompleteMessageAsync(message, stoppingToken);
-                                //_telemetryClient.TrackEvent("Message completed");
+                                    await SaveTranslations(translationEntities);
+
+                                    await _receiver.CompleteMessageAsync(message, stoppingToken);
+                                    //_telemetryClient.TrackEvent("Message completed");
+                                }
+                                catch (CompromisedException e)
+                                {
+                                    await _receiver.AbandonMessageAsync(message, null, stoppingToken);
+                                    //_telemetryClient.TrackException(e);
+                                    _logger.LogError(e, "IP is compromised");
+                                }
+                                catch (ServiceBusException ex)
+                                {
+                                    _logger.LogError(ex, "Error occurred");
+                                    _telemetryClient.TrackException(ex);
+                                }
+                                catch (Exception ex)
+                                {
+                                    await _receiver.AbandonMessageAsync(message, null, stoppingToken);
+                                    _logger.LogError(ex, "Error occurred");
+                                    _telemetryClient.TrackException(ex);
+                                }
                             }
-                            catch (CompromisedException e)
-                            {
-                                await _receiver.AbandonMessageAsync(message, null, stoppingToken);
-                                //_telemetryClient.TrackException(e);
-                                _logger.LogError(e, "IP is compromised");
-                            }
-                            catch (ServiceBusException ex)
-                            {
-                                _logger.LogError(ex, "Error occurred");
-                                _telemetryClient.TrackException(ex);
-                            }
-                            catch (Exception ex)
-                            {
-                                await _receiver.AbandonMessageAsync(message, null, stoppingToken);
-                                _logger.LogError(ex, "Error occurred");
-                                _telemetryClient.TrackException(ex);
-                            }
-                        }
+                        });
+
+                        task.Start();
+
+                        return task;
                     });
 
-                    task.Start();
+                    await Task.WhenAll(_currentTasks);
 
-                    return task;
-                });
+                    Console.Clear();
 
-                await Task.WhenAll(tasks);
-
-                Console.Clear();
-
-                msgs = await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken);
+                    msgs = await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken);
+                }
             }
+            catch (Exception e)
+            {
+                _telemetryClient.TrackException(e);
+                throw;
+            }
+        }
+
+        public override async Task StopAsync(CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("Service is stopping.");
+            await base.StopAsync(stoppingToken);
+
+            await Task.WhenAll(_currentTasks);
         }
 
         private async Task SaveTranslations(List<TranslationEntity> translationEntities)
