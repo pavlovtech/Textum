@@ -91,6 +91,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
                         if (message.LockedUntil.AddMinutes(-1) <= DateTimeOffset.UtcNow)
                         {
+                            _telemetryClient.TrackEvent("Lock is to be expired");
                             _receiver.RenewMessageLockAsync(message, stoppingToken);
                         }
 
