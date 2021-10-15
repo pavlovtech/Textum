@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using HtmlAgilityPack;
 using Konsole;
@@ -53,7 +54,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             _logger = logger;
         }
 
-        public List<TranslationEntity> Handle(ServiceBusReceivedMessage message, CancellationToken stoppingToken)
+        public async Task<List<TranslationEntity>> Handle(ServiceBusReceivedMessage message, CancellationToken stoppingToken)
         {
             using var handleEventOperation =
                 _telemetryClient.StartOperation<DependencyTelemetry>("TranslationTranslationEventHandler.Handle");
@@ -88,7 +89,12 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                         //_translationService.Insert(result);
                         translationEntities.Add(result);
                         //_telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
-                        _receiver.RenewMessageLockAsync(message, stoppingToken);
+
+                        if (message.LockedUntil.AddMinutes(-1) <= DateTimeOffset.UtcNow)
+                        {
+                            _telemetryClient.TrackEvent("Lock is to be expired");
+                            await _receiver.RenewMessageLockAsync(message, stoppingToken);
+                        }
 
                         pb.Refresh(i + 1, $"{words[i]}");
                     }
