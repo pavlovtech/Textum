@@ -19,7 +19,7 @@ using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
 using TextumReader.TranslationsCollectorWorkerService.Models;
 using TextumReader.TranslationsCollectorWorkerService.Services;
-
+using SeleniumExtras.WaitHelpers;
 using ExpectedConditions = SeleniumExtras.WaitHelpers.ExpectedConditions;
 using LogLevel = OpenQA.Selenium.LogLevel;
 
@@ -88,11 +88,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                         //_translationService.Insert(result);
                         translationEntities.Add(result);
                         //_telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
-
-                        if (message.LockedUntil.AddMinutes(-1) <= DateTimeOffset.UtcNow)
-                        {
-                            _receiver.RenewMessageLockAsync(message, stoppingToken);
-                        }
+                        _receiver.RenewMessageLockAsync(message, stoppingToken);
 
                         pb.Refresh(i + 1, $"{words[i]}");
                     }

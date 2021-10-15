@@ -100,7 +100,11 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
             try
             {
+                await _receiver.RenewMessageLockAsync(message, stoppingToken);
+
                 var translationEntities = _translationEventHandler.Handle(message, stoppingToken);
+
+                await _receiver.RenewMessageLockAsync(message, stoppingToken);
 
                 await SaveTranslations(translationEntities);
 
@@ -140,21 +144,18 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
         private async Task SaveTranslations(List<TranslationEntity> translationEntities)
         {
-            using (_telemetryClient.StartOperation<RequestTelemetry>("SaveTranslations"))
-            {
-                var container = _cosmosClient.GetContainer("TextumDB", "translations");
+            var container = _cosmosClient.GetContainer("TextumDB", "translations");
 
-                foreach (var translationEntity in translationEntities)
+            foreach (var translationEntity in translationEntities)
+            {
+                try
                 {
-                    try
-                    {
-                        await container.CreateItemAsync(translationEntity);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogInformation(ex, "Error occurred");
-                        _telemetryClient.TrackException(ex);
-                    }
+                    await container.CreateItemAsync(translationEntity);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation(ex, "Error occurred");
+                    _telemetryClient.TrackException(ex);
                 }
             }
         }

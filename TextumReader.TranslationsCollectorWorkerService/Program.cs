@@ -50,8 +50,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
                             SerializerOptions = new CosmosSerializationOptions
                             {
                                 PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-                            },
-                            //AllowBulkExecution = true
+                            }
                         });
 
                     services.AddSingleton<ITranslationEventHandler, TranslationTranslationEventHandler>();
