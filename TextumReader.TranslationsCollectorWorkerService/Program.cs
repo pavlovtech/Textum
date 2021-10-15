@@ -38,6 +38,10 @@ namespace TextumReader.TranslationsCollectorWorkerService
         public static IHostBuilder CreateHostBuilder(string[] args, IConfiguration config)
         {
             return Host.CreateDefaultBuilder(args)
+                .UseWindowsService(options =>
+                {
+                    options.ServiceName = "GoogleTranslateScraper";
+                })
                 .ConfigureServices((hostContext, services) =>
                 {
                     var client = new ServiceBusClient(config.GetValue<string>("ServiceBusConnectionString"));
