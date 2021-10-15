@@ -62,14 +62,13 @@ namespace TextumReader.TranslationsCollectorWorkerService
                     services.AddHostedService<GoogleTranslateScraperWorker>();
                     services.AddApplicationInsightsTelemetryWorkerService();
 
-                    services.Configure<HostOptions>(
-                        opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));
-
+                    /*services.Configure<HostOptions>(
+                        opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));*/
 
                     var console = Window.OpenBox("translations", 120, 29);
-
                     services.AddSingleton<IConsole>(console);
                 })
+                .UseConsoleLifetime()
                 .UseSerilog();
         }
 

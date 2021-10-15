@@ -55,58 +55,56 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
         public List<TranslationEntity> Handle(ServiceBusReceivedMessage message, CancellationToken stoppingToken)
         {
-            using (var handleEventOperation =
-                _telemetryClient.StartOperation<DependencyTelemetry>("TranslationTranslationEventHandler.Handle"))
+            using var handleEventOperation =
+                _telemetryClient.StartOperation<DependencyTelemetry>("TranslationTranslationEventHandler.Handle");
+
+            var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
+
+            var service = ConfigureChrome(out var chromeOptions);
+
+            var translationEntities = new List<TranslationEntity>();
+
+            var pb = new ProgressBar(_console, PbStyle.SingleLine, words.Count);
+
+            try
             {
-               
-                var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
-
-                var service = ConfigureChrome(out var chromeOptions);
-
-                var translationEntities = new List<TranslationEntity>();
-
-                var pb = new ProgressBar(_console, PbStyle.SingleLine, words.Count);
-
-                try
+                using (var driver = new ChromeDriver(service,
+                    chromeOptions))
                 {
-                    using (var driver = new ChromeDriver(service,
-                        chromeOptions))
+                    //driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
+                      
+                    for (var i = 0; i < words.Count; i++)
                     {
-                        //driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
-
-                        for (var i = 0; i < words.Count; i++)
+                        if (stoppingToken.IsCancellationRequested)
                         {
-                            if (stoppingToken.IsCancellationRequested)
-                            {
-                                driver.Quit();
-                                handleEventOperation.Telemetry.Success = false;
+                            driver.Quit();
+                            handleEventOperation.Telemetry.Success = false;
 
-                                throw new ApplicationException("Cancellation requested");
-                            }
-
-                            var result = GetTranslations(driver, @from, to, words, i, chromeOptions);
-
-                            //_translationService.Insert(result);
-                            translationEntities.Add(result);
-                            //_telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
-                            _receiver.RenewMessageLockAsync(message, stoppingToken);
-
-                            pb.Refresh(i + 1, $"{words[i]}");
+                            throw new ApplicationException("Cancellation requested");
                         }
+
+                        var result = GetTranslations(driver, @from, to, words, i, chromeOptions);
+
+                        //_translationService.Insert(result);
+                        translationEntities.Add(result);
+                        //_telemetryClient.TrackTrace($"Finished processing '{words[i]}'");
+                        _receiver.RenewMessageLockAsync(message, stoppingToken);
+
+                        pb.Refresh(i + 1, $"{words[i]}");
                     }
-
-                    _logger.LogInformation("Complete job");
-
-                    handleEventOperation.Telemetry.Success = true;
-
-                    return translationEntities;
                 }
-                catch (Exception e)
-                {
-                    pb.Refresh(0, $"{e.Message}");
-                    handleEventOperation.Telemetry.Success = false;
-                    throw;
-                }
+
+                _logger.LogInformation("Complete job");
+
+                handleEventOperation.Telemetry.Success = true;
+
+                return translationEntities;
+            }
+            catch (Exception e)
+            {
+                pb.Refresh(0, $"{e.Message}");
+                handleEventOperation.Telemetry.Success = false;
+                throw;
             }
         }
 

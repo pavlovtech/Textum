@@ -55,7 +55,12 @@ namespace TextumReader.TranslationsCollectorWorkerService
             {
                 _logger.LogInformation("ExecuteAsync Started");
 
-                var msgs = await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken);
+                var msgs = (await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken)).ToList();
+
+                if (msgs.Count < _maxMessages)
+                {
+                    msgs.AddRange(await _receiver.ReceiveMessagesAsync(_maxMessages - msgs.Count, TimeSpan.FromSeconds(10), stoppingToken));
+                }
 
                 //_telemetryClient.TrackEvent("Service Bus messages received");
 
@@ -67,8 +72,18 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                     _console.Clear();
 
-                    msgs = await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken);
+                    msgs = (await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken)).ToList();
+
+                    if (msgs.Count < _maxMessages)
+                    {
+                        msgs.AddRange(await _receiver.ReceiveMessagesAsync(_maxMessages - msgs.Count, TimeSpan.FromSeconds(10), stoppingToken));
+                    }
                 }
+            }
+            catch (ServiceBusException ex)
+            {
+                _logger.LogError(ex, "Error occurred");
+                _telemetryClient.TrackException(ex);
             }
             catch (Exception e)
             {
@@ -81,43 +96,41 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
         private async Task ProcessMessage(CancellationToken stoppingToken, ServiceBusReceivedMessage message)
         {
-            using (_telemetryClient.StartOperation<RequestTelemetry>("Translations scraping"))
+            using var op = _telemetryClient.StartOperation<RequestTelemetry>("Translations scraping");
+
+            try
             {
-                try
-                {
-                    if (message.LockedUntil < DateTimeOffset.Now)
-                    {
-                        Console.WriteLine($"Shit {message.ExpiresAt}");
-                    }
+                await _receiver.RenewMessageLockAsync(message, stoppingToken);
 
-                    await _receiver.RenewMessageLockAsync(message, stoppingToken);
+                var translationEntities = _translationEventHandler.Handle(message, stoppingToken);
 
-                    var translationEntities = _translationEventHandler.Handle(message, stoppingToken);
+                await _receiver.RenewMessageLockAsync(message, stoppingToken);
 
-                    await _receiver.RenewMessageLockAsync(message, stoppingToken);
+                await SaveTranslations(translationEntities);
 
-                    await SaveTranslations(translationEntities);
+                await _receiver.CompleteMessageAsync(message, stoppingToken);
 
-                    await _receiver.CompleteMessageAsync(message, stoppingToken);
-                    //_telemetryClient.TrackEvent("Message completed");
-                }
-                catch (CompromisedException e)
-                {
-                    await _receiver.AbandonMessageAsync(message);
-                    _telemetryClient.TrackException(e);
-                    _logger.LogError(e, "IP is compromised");
-                }
-                catch (ServiceBusException ex)
-                {
-                    _logger.LogError(ex, "Error occurred");
-                    _telemetryClient.TrackException(ex);
-                }
-                catch (Exception ex)
-                {
-                    await _receiver.AbandonMessageAsync(message);
-                    _logger.LogError(ex, "Error occurred");
-                    _telemetryClient.TrackException(ex);
-                }
+                op.Telemetry.Success = true;
+            }
+            catch (CompromisedException e)
+            {
+                await _receiver.AbandonMessageAsync(message);
+                _telemetryClient.TrackException(e);
+                _logger.LogError(e, "IP is compromised");
+                op.Telemetry.Success = false;
+            }
+            catch (ServiceBusException ex)
+            {
+                _logger.LogError(ex, "Error occurred");
+                _telemetryClient.TrackException(ex);
+                op.Telemetry.Success = false;
+            }
+            catch (Exception ex)
+            {
+                await _receiver.AbandonMessageAsync(message);
+                _logger.LogError(ex, "Error occurred");
+                _telemetryClient.TrackException(ex);
+                op.Telemetry.Success = false;
             }
         }
 
