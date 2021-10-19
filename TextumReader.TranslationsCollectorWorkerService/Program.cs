@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Events;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.EventHandlers;
 using TextumReader.TranslationsCollectorWorkerService.Services;
@@ -24,10 +25,15 @@ namespace TextumReader.TranslationsCollectorWorkerService
             var config = builder.Build();
 
             Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(config)
+                .Enrich.WithMachineName()
+                .Enrich.WithEnvironmentName()
+                .Enrich.WithThreadId()
+                .Enrich.WithThreadName()
+                .Enrich.WithProcessName()
+                .Enrich.WithProcessId()
                 .Enrich.FromLogContext()
-                //.WriteTo.Console()
-                .WriteTo.ApplicationInsights(TelemetryConfiguration.Active, TelemetryConverter.Traces)
+                //.WriteTo.Seq("http://localhost:5341", LogEventLevel.Debug, 1000, null, "O09szsLe4sMkpUgGqkyU")
+                .ReadFrom.Configuration(config)
                 .CreateLogger();
 
             Log.Logger.Information("Application Starting");
@@ -46,7 +52,10 @@ namespace TextumReader.TranslationsCollectorWorkerService
                 {
                     var client = new ServiceBusClient(config.GetValue<string>("ServiceBusConnectionString"));
 
-                    var receiver = client.CreateReceiver(config.GetValue<string>("QueueName"));
+                    var receiver = client.CreateReceiver(config.GetValue<string>("QueueName"), new ServiceBusReceiverOptions()
+                    {
+                        PrefetchCount = 0
+                    });
 
                     var cosmosClient = new CosmosClient(config.GetValue<string>("CosmosDbConnectionString"),
                         new CosmosClientOptions
@@ -57,7 +66,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
                             }
                         });
 
-                    services.AddSingleton<ITranslationEventHandler, TranslationTranslationEventHandler>();
+                    services.AddSingleton<ITranslationEventHandler, PlaywrightTranslationTranslationEventHandler>();
                     services.AddSingleton<CognitiveServicesTranslator>();
                     services.AddSingleton<ProxyProvider>();
                     services.AddSingleton(cosmosClient);
@@ -66,14 +75,20 @@ namespace TextumReader.TranslationsCollectorWorkerService
                     services.AddHostedService<GoogleTranslateScraperWorker>();
                     services.AddApplicationInsightsTelemetryWorkerService();
 
-                    /*services.Configure<HostOptions>(
-                        opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));*/
+                    services.Configure<HostOptions>(
+                        opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));
 
                     var console = Window.OpenBox("translations", 120, 29);
                     services.AddSingleton<IConsole>(console);
                 })
                 .UseConsoleLifetime()
-                .UseSerilog();
+                .UseSerilog((context, provider, loggerConfig) =>
+                {
+                    loggerConfig
+                        .WriteTo.File("log.txt", LogEventLevel.Debug)
+                        .WriteTo.ApplicationInsights(provider.GetRequiredService<TelemetryConfiguration>(),
+                            TelemetryConverter.Traces);
+                });
         }
 
         private static void BuildConfig(IConfigurationBuilder builder)

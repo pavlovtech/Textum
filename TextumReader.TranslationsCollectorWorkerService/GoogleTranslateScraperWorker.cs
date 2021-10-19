@@ -11,6 +11,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SerilogTimings;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
 using TextumReader.TranslationsCollectorWorkerService.Models;
@@ -27,7 +28,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
         private readonly IConsole _console;
         private readonly ITranslationEventHandler _translationEventHandler;
         private int _maxMessages;
-        private IEnumerable<Task> _currentTasks;
+        private List<Task> _currentTasks;
 
         public GoogleTranslateScraperWorker(
             CosmosClient cosmosClient,
@@ -46,47 +47,43 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
             _cosmosClient = cosmosClient;
             _receiver = receiver;
-            _maxMessages = config.GetValue<int>("MaxMessages");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation(_config.GetValue<int>("MaxMessages").ToString());
+
+            _maxMessages = _config.GetValue<int>("MaxMessages");
+
             try
             {
                 _logger.LogInformation("ExecuteAsync Started");
 
-                var msgs = (await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken)).ToList();
-
-                if (msgs.Count < _maxMessages)
-                {
-                    msgs.AddRange(await _receiver.ReceiveMessagesAsync(_maxMessages - msgs.Count, TimeSpan.FromSeconds(10), stoppingToken));
-                }
+                var msgs = await CollectMessages(stoppingToken);
 
                 //_telemetryClient.TrackEvent("Service Bus messages received");
 
                 while (msgs.Count > 0 && !stoppingToken.IsCancellationRequested)
                 {
-                    _currentTasks = msgs.Select(message => ProcessMessage(stoppingToken, message));
+                    _currentTasks = msgs.Select(message => ProcessMessage(message, stoppingToken)).ToList();
 
                     await Task.WhenAll(_currentTasks);
 
+                    _logger.LogInformation("Finished waiting for {count} tasks", _currentTasks.Count);
+
+                    msgs = await CollectMessages(stoppingToken);
+
                     _console.Clear();
-
-                    msgs = (await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(10), stoppingToken)).ToList();
-
-                    if (msgs.Count < _maxMessages)
-                    {
-                        msgs.AddRange(await _receiver.ReceiveMessagesAsync(_maxMessages - msgs.Count, TimeSpan.FromSeconds(10), stoppingToken));
-                    }
                 }
             }
             catch (ServiceBusException ex)
             {
-                _logger.LogError(ex, "Error occurred");
+                _logger.LogError(ex, "Service bus error in one of tasks");
                 _telemetryClient.TrackException(ex);
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Unknown error occurred in one of tasks");
                 _telemetryClient.TrackException(e);
                 Console.WriteLine("Program crashed");
                 Console.WriteLine(e.ToString());
@@ -94,19 +91,55 @@ namespace TextumReader.TranslationsCollectorWorkerService
             }
         }
 
-        private async Task ProcessMessage(CancellationToken stoppingToken, ServiceBusReceivedMessage message)
+        private async Task<List<ServiceBusReceivedMessage>> CollectMessages(CancellationToken stoppingToken)
         {
+            using var time = Operation.Time("GoogleTranslateScraperWorker.CollectMessages");
+
+            var msgs = (await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(3), stoppingToken)).ToList();
+
+            _logger.LogInformation("Received messages: {count}", msgs.Count);
+
+            for (int i = 0; msgs.Count < _maxMessages && i < 4; i++)
+            {
+                var messagesCount = _maxMessages - msgs.Count;
+
+                _logger.LogInformation("Getting more messages: {count}", messagesCount);
+
+                msgs.AddRange(await _receiver.ReceiveMessagesAsync(messagesCount, TimeSpan.FromSeconds(3),
+                    stoppingToken));
+            }
+
+            _logger.LogInformation("Received messages: {count} total", msgs.Count);
+
+            return msgs;
+        }
+
+        private async Task ProcessMessage(ServiceBusReceivedMessage message, CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("ProcessMessage started for {id}", message.MessageId);
+
             using var op = _telemetryClient.StartOperation<RequestTelemetry>("Translations scraping");
+            using var time = Operation.Time("GoogleTranslateScraperWorker.ProcessMessage");
 
             try
             {
+                if (DateTimeOffset.UtcNow > message.LockedUntil.AddMinutes(-2))
+                {
+                    _logger.LogInformation("Lock expired on {date} for message {id}", message.LockedUntil.ToLocalTime(), message.MessageId);
+                    _telemetryClient.TrackEvent("Lock expired");
+                }
+
                 await _receiver.RenewMessageLockAsync(message, stoppingToken);
 
                 var translationEntities = await _translationEventHandler.Handle(message, stoppingToken);
 
                 await SaveTranslations(translationEntities);
 
+                _logger.LogInformation("SaveTranslations complete for message {id}", message.MessageId);
+
                 await _receiver.CompleteMessageAsync(message, stoppingToken);
+
+                _logger.LogInformation("ProcessMessage complete for {id}", message.MessageId);
 
                 op.Telemetry.Success = true;
             }
@@ -119,14 +152,14 @@ namespace TextumReader.TranslationsCollectorWorkerService
             }
             catch (ServiceBusException ex)
             {
-                _logger.LogError(ex, "Error occurred");
+                _logger.LogError(ex, "Error occurred with service bus");
                 _telemetryClient.TrackException(ex);
                 op.Telemetry.Success = false;
             }
             catch (Exception ex)
             {
                 await _receiver.AbandonMessageAsync(message);
-                _logger.LogError(ex, "Error occurred");
+                _logger.LogError(ex, "Unknown error occurred");
                 _telemetryClient.TrackException(ex);
                 op.Telemetry.Success = false;
             }
@@ -142,7 +175,9 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
         private async Task SaveTranslations(List<TranslationEntity> translationEntities)
         {
-            using (_telemetryClient.StartOperation<RequestTelemetry>("SaveTranslations"))
+            using var time = Operation.Time("GoogleTranslateScraperWorker.SaveTranslations");
+
+            using (_telemetryClient.StartOperation<DependencyTelemetry>("SaveTranslations"))
             {
                 var container = _cosmosClient.GetContainer("TextumDB", "translations");
                 foreach (var translationEntity in translationEntities)
