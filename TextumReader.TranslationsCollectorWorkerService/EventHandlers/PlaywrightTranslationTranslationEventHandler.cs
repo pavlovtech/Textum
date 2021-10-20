@@ -31,6 +31,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
         private IConsole _console;
+        private readonly IBrowser _browser;
         private readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(1);
 
         public PlaywrightTranslationTranslationEventHandler(
@@ -40,10 +41,12 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             ProxyProvider proxyProvider,
             ILogger<PlaywrightTranslationTranslationEventHandler> logger,
             IConfiguration config,
-            IConsole console)
+            IConsole console,
+            IBrowser browser)
         {
             _config = config;
             _console = console;
+            _browser = browser;
             _receiver = receiver;
             _telemetryClient = telemetryClient;
             _cognitiveServicesTranslator = cognitiveServicesTranslator;
@@ -68,51 +71,44 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             {
                 pb.Refresh(0, "Init...");
 
-                using var playwright = await Playwright.CreateAsync();
-
-                var options = new BrowserTypeLaunchOptions();
+                var contextOptions = new BrowserNewContextOptions();
 
                 if (_config.GetValue<bool>("UseProxy"))
                 {
-                    options.Proxy = new Proxy
+                    contextOptions.Proxy = new Proxy
                     {
                         Server = _proxyProvider.GetProxy().HttpProxy
                     };
                 }
 
-                options.Headless = _config.GetValue<bool>("Headless");
-                
-                await using (var browser = await playwright.Chromium.LaunchAsync(options))
+                await using var context = await _browser.NewContextAsync();
+
+                var page = await context.NewPageAsync();
+
+                for (var i = 0; i < words.Count; i++)
                 {
-                    //var context = await browser.NewContextAsync();
-
-                    var page = await browser.NewPageAsync();
-
-                    for (var i = 0; i < words.Count; i++)
+                    if (stoppingToken.IsCancellationRequested)
                     {
-                        if (stoppingToken.IsCancellationRequested)
-                        {
-                            await browser.CloseAsync();
-                            handleEventOperation.Telemetry.Success = false;
+                        await context.CloseAsync();
+                        handleEventOperation.Telemetry.Success = false;
 
-                            throw new ApplicationException("Cancellation requested");
-                        }
-
-                        if (DateTimeOffset.UtcNow > message.LockedUntil.AddMinutes(-2))
-                        {
-                            _logger.LogInformation("Lock is to be expired");
-                            _telemetryClient.TrackEvent("Lock is to be expired");
-                            await _receiver.RenewMessageLockAsync(message, stoppingToken);
-                            _logger.LogInformation("Lock renewed");
-                        }
-
-                        var result = await GetTranslations(page, @from, to, words, i, options);
-
-                        //_translationService.Insert(result);
-                        translationEntities.Add(result);
-
-                        pb.Refresh(i + 1, $"{words[i]}");
+                        throw new ApplicationException("Cancellation requested");
                     }
+
+                    if (DateTimeOffset.UtcNow > message.LockedUntil.AddMinutes(-2))
+                    {
+                        _logger.LogInformation("Lock is to be expired");
+                        _telemetryClient.TrackEvent("Lock is to be expired");
+                        await _receiver.RenewMessageLockAsync(message, stoppingToken);
+                        _logger.LogInformation("Lock renewed");
+                    }
+
+                    var result = await GetTranslations(page, @from, to, words, i, contextOptions);
+
+                    //_translationService.Insert(result);
+                    translationEntities.Add(result);
+
+                    pb.Refresh(i + 1, $"{words[i]}");
                 }
 
                 _logger.LogInformation("Scrapping complete");
@@ -131,7 +127,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             }
         }
 
-        private async Task<TranslationEntity> GetTranslations(IPage page, string @from, string to, IList<string> words, int i, BrowserTypeLaunchOptions chromeOptions)
+        private async Task<TranslationEntity> GetTranslations(IPage page, string @from, string to, IList<string> words, int i, BrowserNewContextOptions chromeOptions)
         {
             using var oneWordProcessingOperation = _telemetryClient.StartOperation<DependencyTelemetry>("One word processing");
 
@@ -139,7 +135,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             try
             {
-                using (Operation.Time("driver.Navigate().GoToUrl"))
+                using (Operation.Time("page.Navigate().GoToUrl"))
                 {
                     await page.GotoAsync($"https://translate.google.com/?sl={@from}&tl={to}&text={words[i]}&op=translate");
                 }
@@ -169,11 +165,11 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
         }
 
 
-        private async Task<TranslationEntity> ProcessPage(string word, string from, string to, IPage driver, BrowserTypeLaunchOptions chromeOptions)
+        private async Task<TranslationEntity> ProcessPage(string word, string from, string to, IPage page, BrowserNewContextOptions chromeOptions)
         {
             using var processPageOperationTiming = Operation.Begin("TranslationTranslationEventHandler.ProcessPage");
 
-            var element = await driver.QuerySelectorAsync(
+            var element = await page.QuerySelectorAsync(
                 "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']");
 
             if (element != null)
@@ -189,7 +185,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 }
             }
 
-            var errorEl = await driver.QuerySelectorAsync("div[class='QGDZGb']");
+            var errorEl = await page.QuerySelectorAsync("div[class='QGDZGb']");
             if (errorEl != null && await errorEl.IsVisibleAsync())
             {
                 var text = await errorEl.TextContentAsync();
@@ -210,12 +206,12 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             }
 
 
-            var mainTranslationEl = await driver.WaitForSelectorAsync(".VIiyi");
+            var mainTranslationEl = await page.WaitForSelectorAsync(".VIiyi");
 
             string mainTranslation = await mainTranslationEl?.InnerTextAsync();
 
             // if translations present
-            var docEl = await driver.QuerySelectorAsync("div[class='I87fLc oLovEc XzOhkf']");
+            var docEl = await page.QuerySelectorAsync("div[class='I87fLc oLovEc XzOhkf']");
 
             var doc = "";
 
