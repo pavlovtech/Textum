@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using OpenQA.Selenium;
 
 namespace TextumReader.TranslationsCollectorWorkerService.Services
 {
@@ -18,20 +17,22 @@ namespace TextumReader.TranslationsCollectorWorkerService.Services
             _proxies = allProxies.Except(badProxies).ToList();
         }
 
-        public Proxy GetProxy()
+        public (string proxyUrl, string port, string login, string password) GetProxy()
         {
             if (!_proxies.Any()) throw new Exception("Out of proxies Exception");
 
             var rnd = new Random();
 
-            var proxy = new Proxy();
-            proxy.Kind = ProxyKind.Manual;
-            var proxyUrl = _proxies[rnd.Next(0, _proxies.Count)];
+            //var proxy = new Proxy();
+            //proxy.Kind = ProxyKind.Manual;
+            var proxyData = _proxies[rnd.Next(0, _proxies.Count)].Split(":");
 
-            proxy.SslProxy = proxyUrl;
-            proxy.HttpProxy = proxyUrl;
 
-            return proxy;
+
+            //proxy.SslProxy = proxyUrl;
+            //proxy.HttpProxy = proxyUrl;
+
+            return (proxyData[0], proxyData[1], proxyData[2], proxyData[3]);
         }
 
         public bool ExcludeProxy(string proxy)

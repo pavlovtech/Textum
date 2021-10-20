@@ -74,9 +74,14 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
                 if (_config.GetValue<bool>("UseProxy"))
                 {
+                    var(proxyUrl, port, login,  password) = _proxyProvider.GetProxy();
+
                     options.Proxy = new Proxy
                     {
-                        Server = _proxyProvider.GetProxy().HttpProxy
+                        Server = proxyUrl + ":" + port,
+                        Username = login,
+                        Password = password,
+                        Bypass = "play.google.com,gstatic.com,www.gstatic.com"
                     };
                 }
 
@@ -180,12 +185,8 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             {
                 if (await element.TextContentAsync() == "I agree")
                 {
-                    _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
-                    if (_config.GetValue<bool>("UseProxy"))
-                    {
-                        _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.Server);
-                    }
-                    throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.Server ?? "local"}");
+                    processPageOperationTiming.Cancel();
+                    HandleProxyError(chromeOptions);
                 }
             }
 
@@ -196,16 +197,10 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
                 if (text == "Translation error")
                 {
-                    _logger.LogError("IP is compromised {proxy}", chromeOptions.Proxy);
-
-                    if (_config.GetValue<bool>("UseProxy"))
-                    {
-                        _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.Server);
-                    }
+                    _logger.LogError("IP is compromised {proxy}", chromeOptions.Proxy?.Server);
 
                     processPageOperationTiming.Cancel();
-
-                    throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.Server ?? "local"}");
+                    HandleProxyError(chromeOptions);
                 }
             }
 
@@ -293,6 +288,18 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 Translations = result,
                 Id = $"{from}-{to}-{word}"
             };
+        }
+
+        private void HandleProxyError(BrowserTypeLaunchOptions chromeOptions)
+        {
+            _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy?.Server);
+            if (_config.GetValue<bool>("UseProxy"))
+            {
+                _proxyProvider.ExcludeProxy(
+                    $"{chromeOptions.Proxy?.Server}:{chromeOptions.Proxy?.Username}:{chromeOptions.Proxy?.Password}");
+            }
+
+            throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.Server ?? "local"}");
         }
     }
 }

@@ -179,7 +179,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             if (_config.GetValue<bool>("UseProxy"))
             {
-                chromeOptions.Proxy = _proxyProvider.GetProxy();
+                //chromeOptions.Proxy = _proxyProvider.GetProxy();
             }
 
             if (_config.GetValue<bool>("Headless"))
