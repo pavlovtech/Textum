@@ -7,6 +7,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Playwright;
 using Serilog;
 using Serilog.Events;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
@@ -72,14 +73,21 @@ namespace TextumReader.TranslationsCollectorWorkerService
                     services.AddSingleton(cosmosClient);
                     services.AddSingleton(receiver);
 
+                    var playwright = Playwright.CreateAsync().GetAwaiter().GetResult();
+
+                    var options = new BrowserTypeLaunchOptions { Headless = config.GetValue<bool>("Headless") };
+
+                    options.Timeout = 0;
+
+                    var browser = playwright.Chromium.LaunchAsync(options).Result;
+
+                    services.AddSingleton(browser);
+
                     services.AddHostedService<GoogleTranslateScraperWorker>();
                     services.AddApplicationInsightsTelemetryWorkerService();
 
                     services.Configure<HostOptions>(
                         opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));
-
-                    var console = Window.OpenBox("translations", 120, 29);
-                    services.AddSingleton<IConsole>(console);
                 })
                 .UseConsoleLifetime()
                 .UseSerilog((context, provider, loggerConfig) =>

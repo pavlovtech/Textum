@@ -25,7 +25,6 @@ namespace TextumReader.TranslationsCollectorWorkerService
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
         private readonly IConfiguration _config;
-        private readonly IConsole _console;
         private readonly ITranslationEventHandler _translationEventHandler;
         private int _maxMessages;
         private List<Task> _currentTasks;
@@ -36,14 +35,12 @@ namespace TextumReader.TranslationsCollectorWorkerService
             ILogger<GoogleTranslateScraperWorker> logger,
             ITranslationEventHandler translationEventHandler,
             TelemetryClient telemetryClient,
-            IConfiguration config,
-            IConsole console)
+            IConfiguration config)
         {
             _logger = logger;
             _translationEventHandler = translationEventHandler;
             _telemetryClient = telemetryClient;
             _config = config;
-            _console = console;
 
             _cosmosClient = cosmosClient;
             _receiver = receiver;
@@ -73,7 +70,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                     msgs = await CollectMessages(stoppingToken);
 
-                    _console.Clear();
+                    Console.Clear();
                 }
             }
             catch (ServiceBusException ex)
