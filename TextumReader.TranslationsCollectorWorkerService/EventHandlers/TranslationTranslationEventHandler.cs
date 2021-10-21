@@ -33,7 +33,6 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
         private readonly ProxyProvider _proxyProvider;
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
-        private IConsole _console;
         private readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(1);
 
         public TranslationTranslationEventHandler(
@@ -42,11 +41,9 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             CognitiveServicesTranslator cognitiveServicesTranslator,
             ProxyProvider proxyProvider,
             ILogger<TranslationTranslationEventHandler> logger,
-            IConfiguration config,
-            IConsole console)
+            IConfiguration config)
         {
             _config = config;
-            _console = console;
             _receiver = receiver;
             _telemetryClient = telemetryClient;
             _cognitiveServicesTranslator = cognitiveServicesTranslator;
@@ -65,7 +62,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             var translationEntities = new List<TranslationEntity>();
 
-            var pb = new ProgressBar(_console, PbStyle.SingleLine, words.Count);
+            var pb = new ProgressBar(PbStyle.SingleLine, words.Count);
 
             try
             {

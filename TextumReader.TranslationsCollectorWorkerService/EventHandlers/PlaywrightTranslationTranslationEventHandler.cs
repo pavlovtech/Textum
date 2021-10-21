@@ -30,8 +30,6 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
         private readonly ProxyProvider _proxyProvider;
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
-        private IConsole _console;
-        private readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(1);
 
         public PlaywrightTranslationTranslationEventHandler(
             ServiceBusReceiver receiver,
@@ -39,11 +37,9 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             CognitiveServicesTranslator cognitiveServicesTranslator,
             ProxyProvider proxyProvider,
             ILogger<PlaywrightTranslationTranslationEventHandler> logger,
-            IConfiguration config,
-            IConsole console)
+            IConfiguration config)
         {
             _config = config;
-            _console = console;
             _receiver = receiver;
             _telemetryClient = telemetryClient;
             _cognitiveServicesTranslator = cognitiveServicesTranslator;
@@ -62,7 +58,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             var translationEntities = new List<TranslationEntity>();
 
-            var pb = new ProgressBar(_console, PbStyle.SingleLine, words.Count);
+            var pb = new ProgressBar(PbStyle.SingleLine, words.Count);
 
             try
             {
@@ -92,6 +88,8 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                     //var context = await browser.NewContextAsync();
 
                     var page = await browser.NewPageAsync();
+
+                    page.SetDefaultNavigationTimeout(250000);
 
                     for (var i = 0; i < words.Count; i++)
                     {
