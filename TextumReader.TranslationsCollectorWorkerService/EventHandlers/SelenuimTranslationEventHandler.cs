@@ -12,31 +12,35 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Playwright;
 using Newtonsoft.Json;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 using SerilogTimings;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
 using TextumReader.TranslationsCollectorWorkerService.Models;
 using TextumReader.TranslationsCollectorWorkerService.Services;
+using ExpectedConditions = SeleniumExtras.WaitHelpers.ExpectedConditions;
 
 namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 {
-    public class PlaywrightTranslationTranslationEventHandler : ITranslationEventHandler
+    public class SelenuimTranslationEventHandler : ITranslationEventHandler
     {
         private readonly IConfiguration _config;
         private readonly CognitiveServicesTranslator _cognitiveServicesTranslator;
-        private readonly ILogger<PlaywrightTranslationTranslationEventHandler> _logger;
+        private readonly ILogger<SelenuimTranslationEventHandler> _logger;
         private readonly ProxyProvider _proxyProvider;
         private readonly ServiceBusReceiver _receiver;
         private readonly TelemetryClient _telemetryClient;
+        private readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(1);
 
-        public PlaywrightTranslationTranslationEventHandler(
+        public SelenuimTranslationEventHandler(
             ServiceBusReceiver receiver,
             TelemetryClient telemetryClient,
             CognitiveServicesTranslator cognitiveServicesTranslator,
             ProxyProvider proxyProvider,
-            ILogger<PlaywrightTranslationTranslationEventHandler> logger,
+            ILogger<SelenuimTranslationEventHandler> logger,
             IConfiguration config)
         {
             _config = config;
@@ -49,10 +53,10 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
         public async Task<List<TranslationEntity>> Handle(ServiceBusReceivedMessage message, CancellationToken stoppingToken)
         {
-            _logger.LogInformation("TranslationTranslationEventHandler.Handle for message {id}", message.MessageId);
+            _logger.LogInformation("SelenuimTranslationEventHandler.Handle for message {id}", message.MessageId);
 
             using var handleEventOperation =
-                _telemetryClient.StartOperation<DependencyTelemetry>("TranslationTranslationEventHandler.Handle");
+                _telemetryClient.StartOperation<DependencyTelemetry>("SelenuimTranslationEventHandler.Handle");
 
             var (from, to, words) = JsonConvert.DeserializeObject<TranslationRequest>(message.Body.ToString());
 
@@ -64,38 +68,13 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             {
                 pb.Refresh(0, "Init...");
 
-                using var playwright = await Playwright.CreateAsync();
-
-                var options = new BrowserTypeLaunchOptions();
-
-                if (_config.GetValue<bool>("UseProxy"))
+                using (var driver = ConfigureChrome(out var chromeOptions))
                 {
-                    var(proxyUrl, port, login,  password) = _proxyProvider.GetProxy();
-
-                    options.Proxy = new Proxy
-                    {
-                        Server = proxyUrl + ":" + port,
-                        Username = login,
-                        Password = password,
-                        Bypass = "play.google.com,gstatic.com,www.gstatic.com"
-                    };
-                }
-
-                options.Headless = _config.GetValue<bool>("Headless");
-                
-                await using (var browser = await playwright.Chromium.LaunchAsync(options))
-                {
-                    //var context = await browser.NewContextAsync();
-
-                    var page = await browser.NewPageAsync();
-
-                    page.SetDefaultNavigationTimeout(250000);
-
                     for (var i = 0; i < words.Count; i++)
                     {
                         if (stoppingToken.IsCancellationRequested)
                         {
-                            await browser.CloseAsync();
+                            driver.Quit();
                             handleEventOperation.Telemetry.Success = false;
 
                             throw new ApplicationException("Cancellation requested");
@@ -109,7 +88,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                             _logger.LogInformation("Lock renewed");
                         }
 
-                        var result = await GetTranslations(page, @from, to, words, i, options);
+                        var result = GetTranslations(driver, @from, to, words, i, chromeOptions);
 
                         //_translationService.Insert(result);
                         translationEntities.Add(result);
@@ -134,7 +113,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             }
         }
 
-        private async Task<TranslationEntity> GetTranslations(IPage page, string @from, string to, IList<string> words, int i, BrowserTypeLaunchOptions chromeOptions)
+        private TranslationEntity GetTranslations(ChromeDriver driver, string @from, string to, IList<string> words, int i, ChromeOptions chromeOptions)
         {
             using var oneWordProcessingOperation = _telemetryClient.StartOperation<DependencyTelemetry>("One word processing");
 
@@ -144,10 +123,11 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             {
                 using (Operation.Time("driver.Navigate().GoToUrl"))
                 {
-                    await page.GotoAsync($"https://translate.google.com/?sl={@from}&tl={to}&text={words[i]}&op=translate");
+                    driver.Navigate()
+                        .GoToUrl($"https://translate.google.com/?sl={@from}&tl={to}&text={words[i]}&op=translate");
                 }
 
-                var result = await ProcessPage(words[i], @from, to, page, chromeOptions);
+                var result = ProcessPage(words[i], @from, to, driver, chromeOptions);
 
                 if (result.Translations != null)
                 {
@@ -171,50 +151,97 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             }
         }
 
-
-        private async Task<TranslationEntity> ProcessPage(string word, string from, string to, IPage driver, BrowserTypeLaunchOptions chromeOptions)
+        private ChromeDriver ConfigureChrome(out ChromeOptions chromeOptions)
         {
-            using var processPageOperationTiming = Operation.Begin("TranslationTranslationEventHandler.ProcessPage");
+            using var time = Operation.Time("SelenuimTranslationEventHandler.ConfigureChrome");
 
-            var element = await driver.QuerySelectorAsync(
-                "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']");
+            ChromeDriverService service =
+                ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            service.EnableVerboseLogging = false;
+            service.SuppressInitialDiagnosticInformation = true;
+            service.HideCommandPromptWindow = true;
+
+            chromeOptions = new ChromeOptions();
+            chromeOptions.AddArgument("--window-size=1920,1080");
+            chromeOptions.AddArgument("--no-sandbox");
+            chromeOptions.AddArgument("--disable-gpu");
+            chromeOptions.AddArgument("--disable-crash-reporter");
+            chromeOptions.AddArgument("--disable-extensions");
+            chromeOptions.AddArgument("--disable-in-process-stack-traces");
+            chromeOptions.AddArgument("--disable-logging");
+            chromeOptions.AddArgument("--disable-dev-shm-usage");
+            chromeOptions.AddArgument("--log-level=3");
+            chromeOptions.AddArgument("--output=/dev/null");
+
+
+            if (_config.GetValue<bool>("UseProxy"))
+            {
+                //chromeOptions.Proxy = _proxyProvider.GetProxy();
+            }
+
+            if (_config.GetValue<bool>("Headless"))
+            {
+                chromeOptions.AddArgument("--headless");
+            }
+
+            return new ChromeDriver(service, chromeOptions);
+        }
+
+        private TranslationEntity ProcessPage(string word, string from, string to, ChromeDriver driver, ChromeOptions chromeOptions)
+        {
+            using var processPageOperationTiming = Operation.Begin("SelenuimTranslationEventHandler.ProcessPage");
+
+            var element = TryGetElement(By.CssSelector(
+                    "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']"),
+                driver, _defaultTimeout);
 
             if (element != null)
             {
-                if (await element.TextContentAsync() == "I agree")
+                if (element.Text == "I agree")
                 {
-                    processPageOperationTiming.Cancel();
-                    HandleProxyError(chromeOptions);
+                    _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
+                    if (_config.GetValue<bool>("UseProxy"))
+                    {
+                        _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
+                    }
+                    throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.HttpProxy ?? "local"}");
                 }
             }
 
-            var errorEl = await driver.QuerySelectorAsync("div[class='QGDZGb']");
-            if (errorEl != null && await errorEl.IsVisibleAsync())
+            var errorEl = TryGetElement(By.CssSelector("div[class='QGDZGb']"), driver, _defaultTimeout);
+            if (errorEl != null)
             {
-                var text = await errorEl.TextContentAsync();
+                var text = errorEl.Text;
 
                 if (text == "Translation error")
                 {
-                    _logger.LogError("IP is compromised {proxy}", chromeOptions.Proxy?.Server);
+                    _logger.LogError("IP is compromised {proxy}", chromeOptions.Proxy);
+
+                    if (_config.GetValue<bool>("UseProxy"))
+                    {
+                        _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
+                    }
 
                     processPageOperationTiming.Cancel();
-                    HandleProxyError(chromeOptions);
+
+                    throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.HttpProxy ?? "local"}");
                 }
             }
 
+            string mainTranslation;
 
-            var mainTranslationEl = await driver.WaitForSelectorAsync(".VIiyi");
-
-            string mainTranslation = await mainTranslationEl?.InnerTextAsync();
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(_config.GetValue<int>("FindTranslationTimeoutInSec")));
+            mainTranslation = wait.Until(ExpectedConditions.ElementIsVisible(By.ClassName("VIiyi"))).Text;
 
             // if translations present
-            var docEl = await driver.QuerySelectorAsync("div[class='I87fLc oLovEc XzOhkf']");
+            var docEl = TryGetElement(By.CssSelector("div[class='I87fLc oLovEc XzOhkf']"), driver,
+                _defaultTimeout);
 
             var doc = "";
 
             if (docEl != null)
             {
-                doc = await docEl.InnerHTMLAsync();
+                doc = docEl.GetAttribute("innerHTML");;
             }
             else
             {
@@ -288,16 +315,21 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             };
         }
 
-        private void HandleProxyError(BrowserTypeLaunchOptions chromeOptions)
+        private static IWebElement TryGetElement(By @by, IWebDriver driver, TimeSpan timeout)
         {
-            _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy?.Server);
-            if (_config.GetValue<bool>("UseProxy"))
-            {
-                _proxyProvider.ExcludeProxy(
-                    $"{chromeOptions.Proxy?.Server}:{chromeOptions.Proxy?.Username}:{chromeOptions.Proxy?.Password}");
-            }
+            using var time = Operation.Time("SelenuimTranslationEventHandler.TryGetElement {by}", @by.Criteria);
 
-            throw new CompromisedException($"IP is compromised {chromeOptions?.Proxy?.Server ?? "local"}");
+            try
+            {
+                var wait = new WebDriverWait(driver, timeout);
+                var el = wait.Until(ExpectedConditions.ElementExists(@by));
+                //driver.FindElement(by);
+                return el;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }
