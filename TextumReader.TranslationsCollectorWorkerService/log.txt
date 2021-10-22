@@ -2498,3 +2498,145 @@ Azure.Messaging.ServiceBus.ServiceBusException: The lock supplied is invalid. Ei
 2021-10-22 01:58:05.969 +03:00 [INF] TranslationTranslationEventHandler.ProcessPage completed in 42111.6 ms
 2021-10-22 01:58:06.073 +03:00 [INF] One word processing completed in 97218.9 ms
 2021-10-22 01:58:06.233 +03:00 [INF] driver.Navigate().GoToUrl completed in 80505.8 ms
+2021-10-22 17:07:42.273 +03:00 [INF] 40
+2021-10-22 17:07:42.339 +03:00 [INF] ExecuteAsync Started
+2021-10-22 17:07:42.465 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2021-10-22 17:07:42.471 +03:00 [INF] Hosting environment: Development
+2021-10-22 17:07:42.474 +03:00 [INF] Content root path: C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService
+2021-10-22 17:07:43.526 +03:00 [INF] Received messages: 29
+2021-10-22 17:07:43.528 +03:00 [INF] Getting more messages: 11
+2021-10-22 17:07:43.603 +03:00 [INF] Received messages: 40 total
+2021-10-22 17:07:43.609 +03:00 [INF] GoogleTranslateScraperWorker.CollectMessages completed in 1262.5 ms
+2021-10-22 17:07:43.615 +03:00 [INF] ProcessMessage started for 63fbb54b36204157b589fef0677e0366
+2021-10-22 17:07:43.656 +03:00 [INF] ProcessMessage started for d9b960a191894708947457417e397c9e
+2021-10-22 17:07:43.660 +03:00 [INF] ProcessMessage started for 2e0c4a4189d047a495eb058497ed61c6
+2021-10-22 17:07:43.663 +03:00 [INF] ProcessMessage started for b7affaff86d74ca98e6f781a72c0d355
+2021-10-22 17:07:43.667 +03:00 [INF] ProcessMessage started for f85798bf6b9b4eab91d52442efa63f1e
+2021-10-22 17:07:43.671 +03:00 [INF] ProcessMessage started for c37916351deb41858002fe17c86429e1
+2021-10-22 17:07:43.674 +03:00 [INF] ProcessMessage started for 1ff155fd90224e54918404e9f7430d79
+2021-10-22 17:07:43.677 +03:00 [INF] ProcessMessage started for 82fbf656fac0401f8edb6f65deb48327
+2021-10-22 17:07:43.681 +03:00 [INF] ProcessMessage started for d1514170236f47c2a5f396a7dc8b38e4
+2021-10-22 17:07:43.684 +03:00 [INF] ProcessMessage started for 4ef103e00384415a9ef42c1e13906072
+2021-10-22 17:07:43.687 +03:00 [INF] ProcessMessage started for 2ccbe1782773459b8972de1ffb3c1591
+2021-10-22 17:07:43.695 +03:00 [INF] ProcessMessage started for ae76c8bcdbcf40a689a29f112e5a6835
+2021-10-22 17:07:43.700 +03:00 [INF] ProcessMessage started for 00500d65147544e4a11d8b4008af23c6
+2021-10-22 17:07:43.704 +03:00 [INF] ProcessMessage started for c12abc96eaf44db7be3a8a99b32f853d
+2021-10-22 17:07:43.708 +03:00 [INF] ProcessMessage started for 9966d7a98e7e4f71a234e9fac53eba69
+2021-10-22 17:07:43.721 +03:00 [INF] ProcessMessage started for bcb53c5c281543f985502a63efffe292
+2021-10-22 17:07:43.728 +03:00 [INF] ProcessMessage started for 42c1a25a8a2840fdbc91eb66ec63ea2b
+2021-10-22 17:07:43.732 +03:00 [INF] ProcessMessage started for 34ea2a95f53749679d377256f9e3b89b
+2021-10-22 17:07:43.736 +03:00 [INF] ProcessMessage started for e7169d84367b4c56bcbc8829440e414d
+2021-10-22 17:07:43.740 +03:00 [INF] ProcessMessage started for bd70338d72ca4a3f9fd4b23d7b9b8aad
+2021-10-22 17:07:43.744 +03:00 [INF] ProcessMessage started for 294bd8da7a524334b28debb808bf8c3e
+2021-10-22 17:07:43.749 +03:00 [INF] ProcessMessage started for 067fe5a5ed6a45cfb6c184254f6eb3b8
+2021-10-22 17:07:43.753 +03:00 [INF] ProcessMessage started for efd0e1f3527c4554aad7b223a9bda94f
+2021-10-22 17:07:43.756 +03:00 [INF] ProcessMessage started for a3d87e9e4c1042439b596c5f56f28b0d
+2021-10-22 17:07:43.760 +03:00 [INF] ProcessMessage started for 37797cb05a654c8e879dd4391f59fab0
+2021-10-22 17:07:43.764 +03:00 [INF] ProcessMessage started for 1fe9ccb574a7401db4161beabb02bf1b
+2021-10-22 17:07:43.769 +03:00 [INF] ProcessMessage started for 51d72cbe93914a4184ca196864c1b7cd
+2021-10-22 17:07:43.772 +03:00 [INF] ProcessMessage started for 18fe1a8f40e944069823c581ef2c7461
+2021-10-22 17:07:43.776 +03:00 [INF] ProcessMessage started for f0d6ed08fc7e4891bc4c7e4a4a8322be
+2021-10-22 17:07:43.780 +03:00 [INF] ProcessMessage started for dcbc3314fa6f410ca5231c0c9e3b7974
+2021-10-22 17:07:43.783 +03:00 [INF] ProcessMessage started for 593e69b3b1c4495cad0ba606006e13e3
+2021-10-22 17:07:43.787 +03:00 [INF] ProcessMessage started for 92b3faf67b0a42a387277f39da8375f1
+2021-10-22 17:07:43.791 +03:00 [INF] ProcessMessage started for 0751ad28bde7482d8129017dd50c27cc
+2021-10-22 17:07:43.794 +03:00 [INF] ProcessMessage started for d9cbce2018f549b8a1e28142d9ba9ee8
+2021-10-22 17:07:43.798 +03:00 [INF] ProcessMessage started for 1c4c63b59d3b4b0e96d103773e52d219
+2021-10-22 17:07:43.801 +03:00 [INF] ProcessMessage started for 0416878e5c544cf5b3a418b744566b14
+2021-10-22 17:07:43.804 +03:00 [INF] ProcessMessage started for 422cc66f6b71405c975efe27c82a2b2c
+2021-10-22 17:07:43.808 +03:00 [INF] ProcessMessage started for 4d14990f941f457d9c4db38a6edf33d3
+2021-10-22 17:07:43.812 +03:00 [INF] ProcessMessage started for bbbfe9ef5da04dd68e2d80c9c89ed0f9
+2021-10-22 17:07:43.815 +03:00 [INF] ProcessMessage started for 132155ced0cc400298951fc098ec591e
+2021-10-22 17:07:43.947 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 4ef103e00384415a9ef42c1e13906072
+2021-10-22 17:07:43.947 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 82fbf656fac0401f8edb6f65deb48327
+2021-10-22 17:07:43.947 +03:00 [INF] TranslationTranslationEventHandler.Handle for message f85798bf6b9b4eab91d52442efa63f1e
+2021-10-22 17:07:43.947 +03:00 [INF] TranslationTranslationEventHandler.Handle for message d9b960a191894708947457417e397c9e
+2021-10-22 17:07:43.947 +03:00 [INF] TranslationTranslationEventHandler.Handle for message b7affaff86d74ca98e6f781a72c0d355
+2021-10-22 17:07:43.947 +03:00 [INF] TranslationTranslationEventHandler.Handle for message d1514170236f47c2a5f396a7dc8b38e4
+2021-10-22 17:07:43.947 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 1ff155fd90224e54918404e9f7430d79
+2021-10-22 17:07:43.947 +03:00 [INF] TranslationTranslationEventHandler.Handle for message c37916351deb41858002fe17c86429e1
+2021-10-22 17:07:46.576 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 2e0c4a4189d047a495eb058497ed61c6
+2021-10-22 17:07:47.304 +03:00 [INF] Application is shutting down...
+2021-10-22 17:20:43.814 +03:00 [INF] 40
+2021-10-22 17:20:43.869 +03:00 [INF] ExecuteAsync Started
+2021-10-22 17:20:43.949 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2021-10-22 17:20:43.954 +03:00 [INF] Hosting environment: Development
+2021-10-22 17:20:43.956 +03:00 [INF] Content root path: C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService
+2021-10-22 17:20:45.237 +03:00 [INF] Received messages: 27
+2021-10-22 17:20:45.240 +03:00 [INF] Getting more messages: 13
+2021-10-22 17:20:45.303 +03:00 [INF] Received messages: 40 total
+2021-10-22 17:20:45.307 +03:00 [INF] GoogleTranslateScraperWorker.CollectMessages completed in 1432.4 ms
+2021-10-22 17:20:45.313 +03:00 [INF] ProcessMessage started for 63fbb54b36204157b589fef0677e0366
+2021-10-22 17:20:45.348 +03:00 [INF] ProcessMessage started for d9b960a191894708947457417e397c9e
+2021-10-22 17:20:45.351 +03:00 [INF] ProcessMessage started for 2e0c4a4189d047a495eb058497ed61c6
+2021-10-22 17:20:45.354 +03:00 [INF] ProcessMessage started for b7affaff86d74ca98e6f781a72c0d355
+2021-10-22 17:20:45.357 +03:00 [INF] ProcessMessage started for f85798bf6b9b4eab91d52442efa63f1e
+2021-10-22 17:20:45.360 +03:00 [INF] ProcessMessage started for c37916351deb41858002fe17c86429e1
+2021-10-22 17:20:45.363 +03:00 [INF] ProcessMessage started for 1ff155fd90224e54918404e9f7430d79
+2021-10-22 17:20:45.365 +03:00 [INF] ProcessMessage started for 82fbf656fac0401f8edb6f65deb48327
+2021-10-22 17:20:45.368 +03:00 [INF] ProcessMessage started for d1514170236f47c2a5f396a7dc8b38e4
+2021-10-22 17:20:45.370 +03:00 [INF] ProcessMessage started for 4ef103e00384415a9ef42c1e13906072
+2021-10-22 17:20:45.374 +03:00 [INF] ProcessMessage started for 2ccbe1782773459b8972de1ffb3c1591
+2021-10-22 17:20:45.376 +03:00 [INF] ProcessMessage started for ae76c8bcdbcf40a689a29f112e5a6835
+2021-10-22 17:20:45.379 +03:00 [INF] ProcessMessage started for 00500d65147544e4a11d8b4008af23c6
+2021-10-22 17:20:45.381 +03:00 [INF] ProcessMessage started for c12abc96eaf44db7be3a8a99b32f853d
+2021-10-22 17:20:45.384 +03:00 [INF] ProcessMessage started for 9966d7a98e7e4f71a234e9fac53eba69
+2021-10-22 17:20:45.386 +03:00 [INF] ProcessMessage started for bcb53c5c281543f985502a63efffe292
+2021-10-22 17:20:45.389 +03:00 [INF] ProcessMessage started for 42c1a25a8a2840fdbc91eb66ec63ea2b
+2021-10-22 17:20:45.391 +03:00 [INF] ProcessMessage started for 34ea2a95f53749679d377256f9e3b89b
+2021-10-22 17:20:45.394 +03:00 [INF] ProcessMessage started for e7169d84367b4c56bcbc8829440e414d
+2021-10-22 17:20:45.397 +03:00 [INF] ProcessMessage started for bd70338d72ca4a3f9fd4b23d7b9b8aad
+2021-10-22 17:20:45.399 +03:00 [INF] ProcessMessage started for 294bd8da7a524334b28debb808bf8c3e
+2021-10-22 17:20:45.402 +03:00 [INF] ProcessMessage started for 067fe5a5ed6a45cfb6c184254f6eb3b8
+2021-10-22 17:20:45.405 +03:00 [INF] ProcessMessage started for efd0e1f3527c4554aad7b223a9bda94f
+2021-10-22 17:20:45.408 +03:00 [INF] ProcessMessage started for a3d87e9e4c1042439b596c5f56f28b0d
+2021-10-22 17:20:45.411 +03:00 [INF] ProcessMessage started for 37797cb05a654c8e879dd4391f59fab0
+2021-10-22 17:20:45.413 +03:00 [INF] ProcessMessage started for 1fe9ccb574a7401db4161beabb02bf1b
+2021-10-22 17:20:45.416 +03:00 [INF] ProcessMessage started for 51d72cbe93914a4184ca196864c1b7cd
+2021-10-22 17:20:45.418 +03:00 [INF] ProcessMessage started for dcbc3314fa6f410ca5231c0c9e3b7974
+2021-10-22 17:20:45.421 +03:00 [INF] ProcessMessage started for 593e69b3b1c4495cad0ba606006e13e3
+2021-10-22 17:20:45.424 +03:00 [INF] ProcessMessage started for 92b3faf67b0a42a387277f39da8375f1
+2021-10-22 17:20:45.427 +03:00 [INF] ProcessMessage started for 0751ad28bde7482d8129017dd50c27cc
+2021-10-22 17:20:45.429 +03:00 [INF] ProcessMessage started for d9cbce2018f549b8a1e28142d9ba9ee8
+2021-10-22 17:20:45.435 +03:00 [INF] ProcessMessage started for 1c4c63b59d3b4b0e96d103773e52d219
+2021-10-22 17:20:45.438 +03:00 [INF] ProcessMessage started for 0416878e5c544cf5b3a418b744566b14
+2021-10-22 17:20:45.441 +03:00 [INF] ProcessMessage started for 422cc66f6b71405c975efe27c82a2b2c
+2021-10-22 17:20:45.443 +03:00 [INF] ProcessMessage started for 4d14990f941f457d9c4db38a6edf33d3
+2021-10-22 17:20:45.446 +03:00 [INF] ProcessMessage started for bbbfe9ef5da04dd68e2d80c9c89ed0f9
+2021-10-22 17:20:45.449 +03:00 [INF] ProcessMessage started for 132155ced0cc400298951fc098ec591e
+2021-10-22 17:20:45.457 +03:00 [INF] ProcessMessage started for 0b8844d3975542d0924dd60927838971
+2021-10-22 17:20:45.463 +03:00 [INF] ProcessMessage started for 75e0c9cb50f04e688cf0bccb60c8f336
+2021-10-22 17:20:45.642 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 2e0c4a4189d047a495eb058497ed61c6
+2021-10-22 17:20:45.642 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 82fbf656fac0401f8edb6f65deb48327
+2021-10-22 17:20:45.642 +03:00 [INF] TranslationTranslationEventHandler.Handle for message d1514170236f47c2a5f396a7dc8b38e4
+2021-10-22 17:20:45.642 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 1ff155fd90224e54918404e9f7430d79
+2021-10-22 17:20:45.642 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 00500d65147544e4a11d8b4008af23c6
+2021-10-22 17:20:45.642 +03:00 [INF] TranslationTranslationEventHandler.Handle for message ae76c8bcdbcf40a689a29f112e5a6835
+2021-10-22 17:20:45.642 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 4ef103e00384415a9ef42c1e13906072
+2021-10-22 17:20:45.642 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 2ccbe1782773459b8972de1ffb3c1591
+2021-10-22 17:20:46.751 +03:00 [INF] TranslationTranslationEventHandler.Handle for message c12abc96eaf44db7be3a8a99b32f853d
+2021-10-22 17:20:48.844 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 9966d7a98e7e4f71a234e9fac53eba69
+2021-10-22 17:20:49.837 +03:00 [INF] TranslationTranslationEventHandler.Handle for message bcb53c5c281543f985502a63efffe292
+2021-10-22 17:20:50.833 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 42c1a25a8a2840fdbc91eb66ec63ea2b
+2021-10-22 17:20:51.904 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 34ea2a95f53749679d377256f9e3b89b
+2021-10-22 17:20:52.900 +03:00 [INF] TranslationTranslationEventHandler.Handle for message e7169d84367b4c56bcbc8829440e414d
+2021-10-22 17:20:53.867 +03:00 [INF] TranslationTranslationEventHandler.Handle for message bd70338d72ca4a3f9fd4b23d7b9b8aad
+2021-10-22 17:20:54.840 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 294bd8da7a524334b28debb808bf8c3e
+2021-10-22 17:20:55.844 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 067fe5a5ed6a45cfb6c184254f6eb3b8
+2021-10-22 17:21:13.292 +03:00 [INF] 1
+2021-10-22 17:21:13.347 +03:00 [INF] ExecuteAsync Started
+2021-10-22 17:21:13.426 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2021-10-22 17:21:13.431 +03:00 [INF] Hosting environment: Development
+2021-10-22 17:21:13.434 +03:00 [INF] Content root path: C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService
+2021-10-22 17:21:14.260 +03:00 [INF] Received messages: 1
+2021-10-22 17:21:14.263 +03:00 [INF] Received messages: 1 total
+2021-10-22 17:21:14.274 +03:00 [INF] GoogleTranslateScraperWorker.CollectMessages completed in 918.2 ms
+2021-10-22 17:21:14.280 +03:00 [INF] ProcessMessage started for 18fe1a8f40e944069823c581ef2c7461
+2021-10-22 17:21:14.549 +03:00 [INF] TranslationTranslationEventHandler.Handle for message 18fe1a8f40e944069823c581ef2c7461
+2021-10-22 17:21:19.365 +03:00 [INF] driver.Navigate().GoToUrl completed in 3343.6 ms
+2021-10-22 17:21:19.460 +03:00 [INF] TranslationTranslationEventHandler.ProcessPage completed in 76.4 ms
+2021-10-22 17:21:19.464 +03:00 [INF] One word processing completed in 3442.5 ms
+2021-10-22 17:21:20.879 +03:00 [INF] driver.Navigate().GoToUrl completed in 1407.0 ms
+2021-10-22 17:21:22.060 +03:00 [INF] TranslationTranslationEventHandler.ProcessPage completed in 1178.6 ms
+2021-10-22 17:21:22.494 +03:00 [INF] One word processing completed in 3022.6 ms
+2021-10-22 17:21:23.593 +03:00 [INF] driver.Navigate().GoToUrl completed in 1091.8 ms
