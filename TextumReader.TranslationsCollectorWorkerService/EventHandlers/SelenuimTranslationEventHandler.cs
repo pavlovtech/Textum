@@ -115,9 +115,9 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
         private TranslationEntity GetTranslations(ChromeDriver driver, string @from, string to, IList<string> words, int i, ChromeOptions chromeOptions)
         {
-            using var oneWordProcessingOperation = _telemetryClient.StartOperation<DependencyTelemetry>("One word processing");
+            using var oneWordProcessingOperation = _telemetryClient.StartOperation<DependencyTelemetry>("SelenuimTranslationEventHandler.GetTranslations");
 
-            using var oneWordProcessingOperationTiming = Operation.Begin("One word processing");
+            using var oneWordProcessingOperationTiming = Operation.Begin("SelenuimTranslationEventHandler.GetTranslations");
 
             try
             {
@@ -176,7 +176,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             if (_config.GetValue<bool>("UseProxy"))
             {
-                //chromeOptions.Proxy = _proxyProvider.GetProxy();
+                chromeOptions.Proxy = _proxyProvider.GetProxyWithoutAuth();
             }
 
             if (_config.GetValue<bool>("Headless"))

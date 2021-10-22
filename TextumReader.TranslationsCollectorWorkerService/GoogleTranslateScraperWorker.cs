@@ -120,7 +120,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
             try
             {
-                if (DateTimeOffset.UtcNow > message.LockedUntil.AddMinutes(-2))
+                if (DateTimeOffset.UtcNow > message.LockedUntil)
                 {
                     _logger.LogInformation("Lock expired on {date} for message {id}", message.LockedUntil.ToLocalTime(), message.MessageId);
                     _telemetryClient.TrackEvent("Lock expired");
