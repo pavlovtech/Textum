@@ -2640,3 +2640,145 @@ Azure.Messaging.ServiceBus.ServiceBusException: The lock supplied is invalid. Ei
 2021-10-22 17:21:22.060 +03:00 [INF] TranslationTranslationEventHandler.ProcessPage completed in 1178.6 ms
 2021-10-22 17:21:22.494 +03:00 [INF] One word processing completed in 3022.6 ms
 2021-10-22 17:21:23.593 +03:00 [INF] driver.Navigate().GoToUrl completed in 1091.8 ms
+2021-10-25 22:00:52.418 +03:00 [INF] 5
+2021-10-25 22:00:52.463 +03:00 [INF] ExecuteAsync Started
+2021-10-25 22:00:52.545 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2021-10-25 22:00:52.549 +03:00 [INF] Hosting environment: Development
+2021-10-25 22:00:52.553 +03:00 [INF] Content root path: C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService
+2021-10-25 22:00:53.358 +03:00 [INF] Received messages: 5
+2021-10-25 22:00:53.361 +03:00 [INF] Received messages: 5 total
+2021-10-25 22:00:53.371 +03:00 [INF] GoogleTranslateScraperWorker.CollectMessages completed in 896.8 ms
+2021-10-25 22:00:53.377 +03:00 [INF] ProcessMessage started for 8a332ca625374445b29026176e0e2f2e
+2021-10-25 22:00:53.409 +03:00 [INF] ProcessMessage started for 2adfc016285348a8a3b401a7f53d47e0
+2021-10-25 22:00:53.412 +03:00 [INF] ProcessMessage started for a5d8009694434502b67c162447806fe8
+2021-10-25 22:00:53.416 +03:00 [INF] ProcessMessage started for 8185092c72934d60800f3a02d00b99e0
+2021-10-25 22:00:53.420 +03:00 [INF] ProcessMessage started for 6f2587cfeff24d328555e8c583c26d3c
+2021-10-25 22:00:54.991 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message a5d8009694434502b67c162447806fe8
+2021-10-25 22:00:54.991 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 8a332ca625374445b29026176e0e2f2e
+2021-10-25 22:00:54.991 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 6f2587cfeff24d328555e8c583c26d3c
+2021-10-25 22:00:54.991 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 8185092c72934d60800f3a02d00b99e0
+2021-10-25 22:00:54.991 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 2adfc016285348a8a3b401a7f53d47e0
+2021-10-25 22:00:56.343 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1322.4 ms
+2021-10-25 22:00:56.343 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1322.4 ms
+2021-10-25 22:00:56.343 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1321.8 ms
+2021-10-25 22:00:56.343 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1321.0 ms
+2021-10-25 22:00:56.352 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1330.3 ms
+2021-10-25 22:00:59.870 +03:00 [INF] driver.Navigate().GoToUrl completed in 3514.4 ms
+2021-10-25 22:01:00.223 +03:00 [INF] driver.Navigate().GoToUrl completed in 3867.2 ms
+2021-10-25 22:01:00.440 +03:00 [INF] driver.Navigate().GoToUrl completed in 4084.5 ms
+2021-10-25 22:01:24.005 +03:00 [INF] driver.Navigate().GoToUrl completed in 27648.9 ms
+2021-10-25 22:01:24.005 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 24074.4 ms
+2021-10-25 22:01:24.007 +03:00 [INF] driver.Navigate().GoToUrl completed in 27651.1 ms
+2021-10-25 22:01:25.607 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 25375.0 ms
+2021-10-25 22:01:26.383 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 2368.9 ms
+2021-10-25 22:01:27.945 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 2335.6 ms
+2021-10-25 22:01:27.945 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 3931.7 ms
+2021-10-25 22:01:27.952 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 3937.9 ms
+2021-10-25 22:01:27.970 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 27526.5 ms
+2021-10-25 22:01:28.072 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 125.8 ms
+2021-10-25 22:01:28.075 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 96.3 ms
+2021-10-25 22:01:28.075 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 96.3 ms
+2021-10-25 22:01:29.993 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 1834.2 ms
+2021-10-25 22:01:30.416 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 2240.5 ms
+2021-10-25 22:01:30.873 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 2714.4 ms
+2021-10-25 22:01:31.608 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 31678.7 ms
+2021-10-25 22:01:31.628 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 7614.4 ms
+2021-10-25 22:01:31.633 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 3455.2 ms
+2021-10-25 22:01:31.651 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 3473.0 ms
+2021-10-25 22:01:31.652 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 31419.2 ms
+2021-10-25 22:01:31.659 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 7645.2 ms
+2021-10-25 22:01:31.660 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 31216.6 ms
+2021-10-25 22:01:31.662 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 35306.7 ms
+2021-10-25 22:01:31.663 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 35307.5 ms
+2021-10-25 22:01:31.666 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 35310.4 ms
+2021-10-25 22:01:31.669 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 35313.7 ms
+2021-10-25 22:01:31.673 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 35317.4 ms
+2021-10-25 22:01:33.167 +03:00 [INF] driver.Navigate().GoToUrl completed in 1478.7 ms
+2021-10-25 22:01:33.213 +03:00 [INF] driver.Navigate().GoToUrl completed in 1523.1 ms
+2021-10-25 22:01:33.585 +03:00 [INF] driver.Navigate().GoToUrl completed in 1898.7 ms
+2021-10-25 22:01:42.379 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 9210.1 ms
+2021-10-25 22:01:42.394 +03:00 [INF] driver.Navigate().GoToUrl completed in 10704.0 ms
+2021-10-25 22:01:42.397 +03:00 [INF] driver.Navigate().GoToUrl completed in 10708.5 ms
+2021-10-25 22:01:42.505 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 111.3 ms
+2021-10-25 22:01:42.531 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 8942.8 ms
+2021-10-25 22:01:42.535 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 9318.9 ms
+2021-10-25 22:01:42.562 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 19.7 ms
+2021-10-25 22:01:42.563 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 20.0 ms
+2021-10-25 22:01:43.660 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 1234.8 ms
+2021-10-25 22:01:43.660 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 1219.9 ms
+2021-10-25 22:01:43.675 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 9.0 ms
+2021-10-25 22:01:43.717 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 1092.3 ms
+2021-10-25 22:01:43.722 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 10552.2 ms
+2021-10-25 22:01:43.732 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 12044.0 ms
+2021-10-25 22:01:43.732 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 66.4 ms
+2021-10-25 22:01:43.810 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 1156.6 ms
+2021-10-25 22:01:43.810 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 1156.8 ms
+2021-10-25 22:01:43.822 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 10606.3 ms
+2021-10-25 22:01:43.823 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 10234.8 ms
+2021-10-25 22:01:43.830 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 12144.3 ms
+2021-10-25 22:01:43.831 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 12140.5 ms
+2021-10-25 22:01:44.804 +03:00 [INF] driver.Navigate().GoToUrl completed in 977.4 ms
+2021-10-25 22:01:45.021 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 1136.1 ms
+2021-10-25 22:01:45.021 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 1147.6 ms
+2021-10-25 22:01:45.028 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 2602.1 ms
+2021-10-25 22:01:45.028 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 2587.4 ms
+2021-10-25 22:01:45.033 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 13343.5 ms
+2021-10-25 22:01:45.033 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 13344.5 ms
+2021-10-25 22:01:45.097 +03:00 [INF] driver.Navigate().GoToUrl completed in 1250.6 ms
+2021-10-25 22:01:45.933 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 1125.8 ms
+2021-10-25 22:01:45.946 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 8.6 ms
+2021-10-25 22:01:45.990 +03:00 [INF] driver.Navigate().GoToUrl completed in 943.1 ms
+2021-10-25 22:01:46.047 +03:00 [INF] driver.Navigate().GoToUrl completed in 2199.7 ms
+2021-10-25 22:01:46.217 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 1117.7 ms
+2021-10-25 22:01:46.228 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 7.7 ms
+2021-10-25 22:01:46.336 +03:00 [INF] driver.Navigate().GoToUrl completed in 1290.2 ms
+2021-10-25 22:01:53.797 +03:00 [INF] 5
+2021-10-25 22:01:53.860 +03:00 [INF] ExecuteAsync Started
+2021-10-25 22:01:53.932 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2021-10-25 22:01:53.936 +03:00 [INF] Hosting environment: Development
+2021-10-25 22:01:53.938 +03:00 [INF] Content root path: C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService
+2021-10-25 22:01:54.783 +03:00 [INF] Received messages: 5
+2021-10-25 22:01:54.786 +03:00 [INF] Received messages: 5 total
+2021-10-25 22:01:54.792 +03:00 [INF] GoogleTranslateScraperWorker.CollectMessages completed in 926.0 ms
+2021-10-25 22:01:54.797 +03:00 [INF] ProcessMessage started for e62c294c4ff4488f8d14e1f6643d27ae
+2021-10-25 22:01:54.834 +03:00 [INF] ProcessMessage started for b99da2c886ca43fb89c9751d26d27cb1
+2021-10-25 22:01:54.838 +03:00 [INF] ProcessMessage started for 53cb154c2bad4b75b0524207c5ef2d1b
+2021-10-25 22:01:54.842 +03:00 [INF] ProcessMessage started for fd537b31c9594628a39ab7fd2e0cef4b
+2021-10-25 22:01:54.847 +03:00 [INF] ProcessMessage started for b7fbe5414cc64f748d919e4a25d7cee7
+2021-10-25 22:01:57.703 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 53cb154c2bad4b75b0524207c5ef2d1b
+2021-10-25 22:01:57.703 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message fd537b31c9594628a39ab7fd2e0cef4b
+2021-10-25 22:01:57.703 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message b7fbe5414cc64f748d919e4a25d7cee7
+2021-10-25 22:01:57.703 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message b99da2c886ca43fb89c9751d26d27cb1
+2021-10-25 22:01:57.703 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message e62c294c4ff4488f8d14e1f6643d27ae
+2021-10-25 22:01:59.211 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1480.7 ms
+2021-10-25 22:01:59.211 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1479.2 ms
+2021-10-25 22:01:59.211 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1480.1 ms
+2021-10-25 22:01:59.247 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1514.5 ms
+2021-10-25 22:01:59.279 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 1545.5 ms
+2021-10-25 22:02:00.348 +03:00 [INF] driver.Navigate().GoToUrl completed in 1123.2 ms
+2021-10-25 22:02:00.407 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 29.5 ms
+2021-10-25 22:02:00.427 +03:00 [ERR] IP is compromised {chromeOptions.Proxy.HttpProxy}
+2021-10-25 22:02:00.497 +03:00 [WRN] SelenuimTranslationEventHandler.ProcessPage abandoned in 119.8 ms
+2021-10-25 22:02:00.980 +03:00 [ERR] IP is compromised
+TextumReader.TranslationsCollectorWorkerService.Exceptions.CompromisedException: IP is compromised 45.87.243.252:6254
+   at TextumReader.TranslationsCollectorWorkerService.EventHandlers.SelenuimTranslationEventHandler.ProcessPage(String word, String from, String to, ChromeDriver driver, ChromeOptions chromeOptions) in C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService\EventHandlers\SelenuimTranslationEventHandler.cs:line 207
+   at TextumReader.TranslationsCollectorWorkerService.EventHandlers.SelenuimTranslationEventHandler.GetTranslations(ChromeDriver driver, String from, String to, IList`1 words, Int32 i, ChromeOptions chromeOptions) in C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService\EventHandlers\SelenuimTranslationEventHandler.cs:line 130
+   at TextumReader.TranslationsCollectorWorkerService.EventHandlers.SelenuimTranslationEventHandler.Handle(ServiceBusReceivedMessage message, CancellationToken stoppingToken) in C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService\EventHandlers\SelenuimTranslationEventHandler.cs:line 91
+   at TextumReader.TranslationsCollectorWorkerService.GoogleTranslateScraperWorker.ProcessMessage(ServiceBusReceivedMessage message, CancellationToken stoppingToken) in C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService\GoogleTranslateScraperWorker.cs:line 131
+2021-10-25 22:02:00.984 +03:00 [INF] GoogleTranslateScraperWorker.ProcessMessage completed in 6147.8 ms
+2021-10-25 22:02:02.865 +03:00 [INF] driver.Navigate().GoToUrl completed in 3640.2 ms
+2021-10-25 22:02:02.972 +03:00 [INF] driver.Navigate().GoToUrl completed in 3746.5 ms
+2021-10-25 22:02:03.356 +03:00 [INF] driver.Navigate().GoToUrl completed in 4069.5 ms
+2021-10-25 22:02:03.961 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 1092.7 ms
+2021-10-25 22:02:03.975 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 11.1 ms
+2021-10-25 22:02:04.070 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 1095.4 ms
+2021-10-25 22:02:04.086 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 12.4 ms
+2021-10-25 22:02:04.448 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc'] completed in 1089.7 ms
+2021-10-25 22:02:04.464 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='QGDZGb'] completed in 11.9 ms
+2021-10-25 22:02:05.158 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 1087.9 ms
+2021-10-25 22:02:05.161 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 2292.6 ms
+2021-10-25 22:02:05.163 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 5938.2 ms
+2021-10-25 22:02:05.220 +03:00 [INF] SelenuimTranslationEventHandler.TryGetElement div[class='I87fLc oLovEc XzOhkf'] completed in 1078.1 ms
+2021-10-25 22:02:05.223 +03:00 [INF] SelenuimTranslationEventHandler.ProcessPage completed in 2248.3 ms
+2021-10-25 22:02:05.226 +03:00 [INF] SelenuimTranslationEventHandler.GetTranslations completed in 6000.8 ms
+2021-10-25 22:02:05.250 +03:00 [INF] driver.Navigate().GoToUrl completed in 5990.1 ms

@@ -66,7 +66,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
                             }
                         });
 
-                    services.AddSingleton<ITranslationEventHandler, PlaywrightTranslationEventHandler>();
+                    services.AddSingleton<ITranslationEventHandler, SelenuimTranslationEventHandler>();
                     services.AddSingleton<CognitiveServicesTranslator>();
                     services.AddSingleton<ProxyProvider>();
                     services.AddSingleton(cosmosClient);
