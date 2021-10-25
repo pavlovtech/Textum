@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -35,6 +37,8 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
         private readonly TelemetryClient _telemetryClient;
         private readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(1);
 
+        //public static ConcurrentBag<int> Pids = new();
+
         public SelenuimTranslationEventHandler(
             ServiceBusReceiver receiver,
             TelemetryClient telemetryClient,
@@ -64,17 +68,19 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             var pb = new ProgressBar(PbStyle.SingleLine, words.Count);
 
+            int processId = 0;
+
             try
             {
                 pb.Refresh(0, "Init...");
 
-                using (var driver = ConfigureChrome(out var chromeOptions))
+                using (var driver = ConfigureChrome(out var chromeOptions, out processId))
                 {
                     for (var i = 0; i < words.Count; i++)
                     {
                         if (stoppingToken.IsCancellationRequested)
                         {
-                            driver.Quit();
+                            driver.Close();
                             handleEventOperation.Telemetry.Success = false;
 
                             throw new ApplicationException("Cancellation requested");
@@ -95,7 +101,25 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
                         pb.Refresh(i + 1, $"{words[i]}");
                     }
+
+                    driver.Close();
+                    //driver.Quit();
                 }
+
+                /*try
+                {
+                    var process = Process.GetProcessById(processId);
+
+                    _logger.LogError("Chrome process was not killed");
+
+                    process.Kill(false);
+
+                    _logger.LogError("Killing chrome process");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Error occurred while finding and killing chrome processes: {err}", ex.ToString());
+                }*/
 
                 _logger.LogInformation("Scrapping complete");
 
@@ -107,6 +131,14 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             }
             catch (Exception e)
             {
+                var process = Process.GetProcessById(processId);
+
+                _logger.LogError("Chrome process was not killed");
+
+                process.Kill(false);
+
+                _logger.LogError("Killing chrome process");
+
                 pb.Refresh(0, $"{e.Message}");
                 handleEventOperation.Telemetry.Success = false;
                 throw;
@@ -151,12 +183,12 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             }
         }
 
-        private ChromeDriver ConfigureChrome(out ChromeOptions chromeOptions)
+        private ChromeDriver ConfigureChrome(out ChromeOptions chromeOptions, out int processId)
         {
             using var time = Operation.Time("SelenuimTranslationEventHandler.ConfigureChrome");
 
             ChromeDriverService service =
-                ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(AppContext.BaseDirectory));
             service.EnableVerboseLogging = false;
             service.SuppressInitialDiagnosticInformation = true;
             service.HideCommandPromptWindow = true;
@@ -184,7 +216,13 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                 chromeOptions.AddArgument("--headless");
             }
 
-            return new ChromeDriver(service, chromeOptions);
+            var driver = new ChromeDriver(service, chromeOptions);
+
+            processId = service.ProcessId;
+
+            //Pids.Add(service.ProcessId);
+
+            return driver;
         }
 
         private TranslationEntity ProcessPage(string word, string from, string to, ChromeDriver driver, ChromeOptions chromeOptions)
@@ -199,7 +237,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             {
                 if (element.Text == "I agree")
                 {
-                    _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy);
+                    _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy.HttpProxy);
                     if (_config.GetValue<bool>("UseProxy"))
                     {
                         _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);

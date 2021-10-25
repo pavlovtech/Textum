@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,13 +61,29 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                 //_telemetryClient.TrackEvent("Service Bus messages received");
 
-                while (msgs.Count > 0 && !stoppingToken.IsCancellationRequested)
+                while (!stoppingToken.IsCancellationRequested)
                 {
                     _currentTasks = msgs.Select(message => ProcessMessage(message, stoppingToken)).ToList();
 
                     await Task.WhenAll(_currentTasks);
 
                     _logger.LogInformation("Finished waiting for {count} tasks", _currentTasks.Count);
+
+                    /*var chromeDriverProcesses = Process.GetProcessesByName("chromedriver");
+
+                    Parallel.ForEach(chromeDriverProcesses, process =>
+                    {
+                        _logger.LogError("Killing chromedriver process {id}", process.Id);
+                        process.Kill(false);
+                    });
+
+                    var chromeProcesses = Process.GetProcessesByName("chrome");
+
+                    Parallel.ForEach(chromeProcesses, process =>
+                    {
+                        _logger.LogError("Killing chrome process {id}", process.Id);
+                        process.Kill(false);
+                    });*/
 
                     msgs = await CollectMessages(stoppingToken);
 
