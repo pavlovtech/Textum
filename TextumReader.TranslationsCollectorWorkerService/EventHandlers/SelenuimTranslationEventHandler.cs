@@ -135,7 +135,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
                 _logger.LogError("Chrome process was not killed");
 
-                process.Kill(false);
+                //process.Kill(false);
 
                 _logger.LogError("Killing chrome process");
 

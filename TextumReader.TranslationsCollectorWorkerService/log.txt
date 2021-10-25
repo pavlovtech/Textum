@@ -275,3 +275,144 @@ System.ComponentModel.Win32Exception (5): Access is denied.
 2021-10-25 21:48:44.125 +03:00 [INF] GoogleTranslateScraperWorker.ProcessMessage completed in 5981.2 ms
 2021-10-25 21:48:44.125 +03:00 [INF] GoogleTranslateScraperWorker.ProcessMessage completed in 5946.5 ms
 2021-10-25 21:48:44.125 +03:00 [INF] GoogleTranslateScraperWorker.ProcessMessage completed in 5953.7 ms
+2021-10-25 22:12:44.958 +03:00 [INF] 10
+2021-10-25 22:12:45.059 +03:00 [INF] ExecuteAsync Started
+2021-10-25 22:12:45.159 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2021-10-25 22:12:45.165 +03:00 [INF] Hosting environment: Development
+2021-10-25 22:12:45.167 +03:00 [INF] Content root path: C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService
+2021-10-25 22:12:46.160 +03:00 [INF] Received messages: 10
+2021-10-25 22:12:46.162 +03:00 [INF] Received messages: 10 total
+2021-10-25 22:12:46.173 +03:00 [INF] GoogleTranslateScraperWorker.CollectMessages completed in 1103.7 ms
+2021-10-25 22:12:46.182 +03:00 [INF] ProcessMessage started for c8e3798907f94fddad56fd7070edf6a2
+2021-10-25 22:12:46.219 +03:00 [INF] ProcessMessage started for c53fcee1ef9c4bdd966b0fbd63c75da1
+2021-10-25 22:12:46.223 +03:00 [INF] ProcessMessage started for a59c0fa34ed443479cea233d7b9e7991
+2021-10-25 22:12:46.227 +03:00 [INF] ProcessMessage started for b85c75880ebe4bf2b1b48f76efe2eb57
+2021-10-25 22:12:46.231 +03:00 [INF] ProcessMessage started for 8e141064a7f145c68090318286c638ee
+2021-10-25 22:12:46.236 +03:00 [INF] ProcessMessage started for 6a0e9cc1d33944b0a7a740f9e6bbfb4b
+2021-10-25 22:12:46.244 +03:00 [INF] ProcessMessage started for 4c5b78fbadb74104b7f57ea1d37bbd98
+2021-10-25 22:12:46.248 +03:00 [INF] ProcessMessage started for 3a08af40d91944e5bb233955a95ded2c
+2021-10-25 22:12:46.251 +03:00 [INF] ProcessMessage started for 0f6b9a9d8ecf498ca915225350d14a89
+2021-10-25 22:12:46.255 +03:00 [INF] ProcessMessage started for faa18b717bad4d6dbe25a1423f3f913f
+2021-10-25 22:12:49.804 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message c53fcee1ef9c4bdd966b0fbd63c75da1
+2021-10-25 22:12:49.804 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 8e141064a7f145c68090318286c638ee
+2021-10-25 22:12:49.804 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message b85c75880ebe4bf2b1b48f76efe2eb57
+2021-10-25 22:12:49.804 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 3a08af40d91944e5bb233955a95ded2c
+2021-10-25 22:12:49.804 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 4c5b78fbadb74104b7f57ea1d37bbd98
+2021-10-25 22:12:49.804 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message faa18b717bad4d6dbe25a1423f3f913f
+2021-10-25 22:12:49.804 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message a59c0fa34ed443479cea233d7b9e7991
+2021-10-25 22:12:49.804 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 0f6b9a9d8ecf498ca915225350d14a89
+2021-10-25 22:12:50.001 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 6a0e9cc1d33944b0a7a740f9e6bbfb4b
+2021-10-25 22:12:50.511 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message c8e3798907f94fddad56fd7070edf6a2
+2021-10-25 22:12:52.548 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2703.6 ms
+2021-10-25 22:12:52.642 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2800.3 ms
+2021-10-25 22:12:52.642 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2798.4 ms
+2021-10-25 22:12:52.642 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:12:52.682 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2167.4 ms
+2021-10-25 22:12:52.700 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:12:52.721 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:12:52.724 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2883.6 ms
+2021-10-25 22:12:52.761 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2917.4 ms
+2021-10-25 22:12:52.818 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2977.4 ms
+2021-10-25 22:12:52.839 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2995.9 ms
+2021-10-25 22:12:52.942 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 3096.8 ms
+2021-10-25 22:12:52.963 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:12:53.009 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 3005.2 ms
+2021-10-25 22:12:53.027 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:12:53.027 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:12:53.056 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:12:53.112 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:12:53.236 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:50.894 +03:00 [INF] 10
+2021-10-25 22:13:50.946 +03:00 [INF] ExecuteAsync Started
+2021-10-25 22:13:51.042 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2021-10-25 22:13:51.047 +03:00 [INF] Hosting environment: Development
+2021-10-25 22:13:51.049 +03:00 [INF] Content root path: C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService
+2021-10-25 22:13:51.963 +03:00 [INF] Received messages: 10
+2021-10-25 22:13:51.966 +03:00 [INF] Received messages: 10 total
+2021-10-25 22:13:51.974 +03:00 [INF] GoogleTranslateScraperWorker.CollectMessages completed in 1022.1 ms
+2021-10-25 22:13:51.980 +03:00 [INF] ProcessMessage started for 8a332ca625374445b29026176e0e2f2e
+2021-10-25 22:13:52.014 +03:00 [INF] ProcessMessage started for 2adfc016285348a8a3b401a7f53d47e0
+2021-10-25 22:13:52.018 +03:00 [INF] ProcessMessage started for a5d8009694434502b67c162447806fe8
+2021-10-25 22:13:52.021 +03:00 [INF] ProcessMessage started for 8185092c72934d60800f3a02d00b99e0
+2021-10-25 22:13:52.028 +03:00 [INF] ProcessMessage started for 6f2587cfeff24d328555e8c583c26d3c
+2021-10-25 22:13:52.036 +03:00 [INF] ProcessMessage started for e62c294c4ff4488f8d14e1f6643d27ae
+2021-10-25 22:13:52.044 +03:00 [INF] ProcessMessage started for b99da2c886ca43fb89c9751d26d27cb1
+2021-10-25 22:13:52.048 +03:00 [INF] ProcessMessage started for 53cb154c2bad4b75b0524207c5ef2d1b
+2021-10-25 22:13:52.050 +03:00 [INF] ProcessMessage started for fd537b31c9594628a39ab7fd2e0cef4b
+2021-10-25 22:13:52.053 +03:00 [INF] ProcessMessage started for b7fbe5414cc64f748d919e4a25d7cee7
+2021-10-25 22:13:54.303 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 8185092c72934d60800f3a02d00b99e0
+2021-10-25 22:13:54.303 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message fd537b31c9594628a39ab7fd2e0cef4b
+2021-10-25 22:13:54.304 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 6f2587cfeff24d328555e8c583c26d3c
+2021-10-25 22:13:54.304 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message e62c294c4ff4488f8d14e1f6643d27ae
+2021-10-25 22:13:54.304 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message b99da2c886ca43fb89c9751d26d27cb1
+2021-10-25 22:13:54.304 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 2adfc016285348a8a3b401a7f53d47e0
+2021-10-25 22:13:54.304 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 53cb154c2bad4b75b0524207c5ef2d1b
+2021-10-25 22:13:54.303 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message b7fbe5414cc64f748d919e4a25d7cee7
+2021-10-25 22:13:55.237 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message a5d8009694434502b67c162447806fe8
+2021-10-25 22:13:56.248 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 8a332ca625374445b29026176e0e2f2e
+2021-10-25 22:13:58.267 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 3921.9 ms
+2021-10-25 22:13:58.374 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4024.9 ms
+2021-10-25 22:13:58.374 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4028.1 ms
+2021-10-25 22:13:58.376 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.457 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4110.0 ms
+2021-10-25 22:13:58.457 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4108.4 ms
+2021-10-25 22:13:58.508 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.527 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 3286.6 ms
+2021-10-25 22:13:58.549 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4204.0 ms
+2021-10-25 22:13:58.586 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4241.5 ms
+2021-10-25 22:13:58.627 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.683 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.702 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.707 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2455.7 ms
+2021-10-25 22:13:58.744 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.744 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.748 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4399.9 ms
+2021-10-25 22:13:58.787 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.959 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:13:58.978 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:14:46.079 +03:00 [INF] 10
+2021-10-25 22:14:46.134 +03:00 [INF] ExecuteAsync Started
+2021-10-25 22:14:46.257 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2021-10-25 22:14:46.264 +03:00 [INF] Hosting environment: Development
+2021-10-25 22:14:46.277 +03:00 [INF] Content root path: C:\Repos\TextumReader\TextumReader.TranslationsCollectorWorkerService
+2021-10-25 22:14:47.094 +03:00 [INF] Received messages: 10
+2021-10-25 22:14:47.097 +03:00 [INF] Received messages: 10 total
+2021-10-25 22:14:47.105 +03:00 [INF] GoogleTranslateScraperWorker.CollectMessages completed in 955.8 ms
+2021-10-25 22:14:47.110 +03:00 [INF] ProcessMessage started for ba2fc7f4929d409bbf2ae0f5880d9430
+2021-10-25 22:14:47.144 +03:00 [INF] ProcessMessage started for 752b125eadf94008973ed0086cd010e1
+2021-10-25 22:14:47.148 +03:00 [INF] ProcessMessage started for e4c91e579dab4bdcaec9ac69fd208905
+2021-10-25 22:14:47.151 +03:00 [INF] ProcessMessage started for df379421c6aa4869945445a174cf9935
+2021-10-25 22:14:47.155 +03:00 [INF] ProcessMessage started for 1881efec865e454d8c24ad2501f0f161
+2021-10-25 22:14:47.158 +03:00 [INF] ProcessMessage started for 27b60de42a9740a0a8bdc00ee91b5a1d
+2021-10-25 22:14:47.161 +03:00 [INF] ProcessMessage started for 9b22cddb515d4aeb8a9279efbbb494bf
+2021-10-25 22:14:47.164 +03:00 [INF] ProcessMessage started for 2118cadda73c44ef80b4c0e3810cc26e
+2021-10-25 22:14:47.166 +03:00 [INF] ProcessMessage started for 56291ee4a09041b9a18d61646354d42c
+2021-10-25 22:14:47.169 +03:00 [INF] ProcessMessage started for 1d0d934278024cbb87d99c7c0c0e6794
+2021-10-25 22:14:50.440 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 2118cadda73c44ef80b4c0e3810cc26e
+2021-10-25 22:14:50.440 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 9b22cddb515d4aeb8a9279efbbb494bf
+2021-10-25 22:14:50.440 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message df379421c6aa4869945445a174cf9935
+2021-10-25 22:14:50.440 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 1d0d934278024cbb87d99c7c0c0e6794
+2021-10-25 22:14:50.440 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 752b125eadf94008973ed0086cd010e1
+2021-10-25 22:14:50.440 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 56291ee4a09041b9a18d61646354d42c
+2021-10-25 22:14:50.440 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 1881efec865e454d8c24ad2501f0f161
+2021-10-25 22:14:50.440 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message e4c91e579dab4bdcaec9ac69fd208905
+2021-10-25 22:14:51.362 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message 27b60de42a9740a0a8bdc00ee91b5a1d
+2021-10-25 22:14:52.353 +03:00 [INF] SelenuimTranslationEventHandler.Handle for message ba2fc7f4929d409bbf2ae0f5880d9430
+2021-10-25 22:14:54.376 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 3900.2 ms
+2021-10-25 22:14:54.423 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 3946.1 ms
+2021-10-25 22:14:54.478 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:14:54.498 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:14:54.501 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4024.4 ms
+2021-10-25 22:14:54.525 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4050.0 ms
+2021-10-25 22:14:54.525 +03:00 [ERR] Killing chrome process
+2021-10-25 22:14:54.590 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4117.0 ms
+2021-10-25 22:14:54.609 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:14:54.609 +03:00 [ERR] Chrome process was not killed
+2021-10-25 22:14:54.610 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4131.0 ms
+2021-10-25 22:14:54.614 +03:00 [ERR] Killing chrome process
+2021-10-25 22:14:54.697 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 3331.9 ms
+2021-10-25 22:14:54.700 +03:00 [ERR] Killing chrome process
+2021-10-25 22:14:54.721 +03:00 [ERR] Killing chrome process
+2021-10-25 22:14:54.744 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 2388.2 ms
+2021-10-25 22:14:54.782 +03:00 [INF] SelenuimTranslationEventHandler.ConfigureChrome completed in 4306.5 ms
+2021-10-25 22:14:54.856 +03:00 [ERR] Chrome process was not killed
