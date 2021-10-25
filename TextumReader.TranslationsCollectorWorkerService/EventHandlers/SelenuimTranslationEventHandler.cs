@@ -103,7 +103,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                     }
 
                     driver.Close();
-                    //driver.Quit();
+                    driver.Quit();
                 }
 
                 /*try
@@ -131,13 +131,13 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             }
             catch (Exception e)
             {
-                var process = Process.GetProcessById(processId);
+                //var process = Process.GetProcessById(processId);
 
-                _logger.LogError("Chrome process was not killed");
+                //_logger.LogError("Chrome process was not killed");
 
                 //process.Kill(false);
 
-                _logger.LogError("Killing chrome process");
+                //_logger.LogError("Killing chrome process");
 
                 pb.Refresh(0, $"{e.Message}");
                 handleEventOperation.Telemetry.Success = false;
