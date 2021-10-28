@@ -18,6 +18,7 @@ using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
+using Serilog.Context;
 using SerilogTimings;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
@@ -102,7 +103,6 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                         pb.Refresh(i + 1, $"{words[i]}");
                     }
 
-                    driver.Close();
                     driver.Quit();
                 }
 
@@ -150,6 +150,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             using var oneWordProcessingOperation = _telemetryClient.StartOperation<DependencyTelemetry>("SelenuimTranslationEventHandler.GetTranslations");
 
             using var oneWordProcessingOperationTiming = Operation.Begin("SelenuimTranslationEventHandler.GetTranslations");
+            oneWordProcessingOperationTiming.EnrichWith("OperationName", nameof(GetTranslations));
 
             try
             {
@@ -185,7 +186,9 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
         private ChromeDriver ConfigureChrome(out ChromeOptions chromeOptions, out int processId)
         {
-            using var time = Operation.Time("SelenuimTranslationEventHandler.ConfigureChrome");
+            using var operation = Operation.Begin("SelenuimTranslationEventHandler.ConfigureChrome");
+
+            operation.EnrichWith("OperationName", nameof(ConfigureChrome));
 
             ChromeDriverService service =
                 ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(AppContext.BaseDirectory));
@@ -222,12 +225,16 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             //Pids.Add(service.ProcessId);
 
+            operation.Complete();
+
             return driver;
         }
 
         private TranslationEntity ProcessPage(string word, string from, string to, ChromeDriver driver, ChromeOptions chromeOptions)
         {
             using var processPageOperationTiming = Operation.Begin("SelenuimTranslationEventHandler.ProcessPage");
+
+            processPageOperationTiming.EnrichWith("OperationName", nameof(ProcessPage));
 
             var element = TryGetElement(By.CssSelector(
                     "button[class='VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc']"),
@@ -355,7 +362,11 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
         private static IWebElement TryGetElement(By @by, IWebDriver driver, TimeSpan timeout)
         {
-            using var time = Operation.Time("SelenuimTranslationEventHandler.TryGetElement {by}", @by.Criteria);
+            using var operation = Operation.Begin("SelenuimTranslationEventHandler.TryGetElement {by}", @by.Criteria);
+
+            operation.EnrichWith("OperationName", nameof(TryGetElement));
+            operation.EnrichWith("By", @by.Criteria);
+
 
             try
             {
@@ -367,6 +378,10 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             catch (Exception)
             {
                 return null;
+            }
+            finally
+            {
+                operation.Complete();
             }
         }
     }

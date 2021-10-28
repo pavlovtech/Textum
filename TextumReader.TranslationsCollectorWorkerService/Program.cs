@@ -9,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using Serilog.Exceptions;
+using Serilog.Sinks.Elasticsearch;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.EventHandlers;
 using TextumReader.TranslationsCollectorWorkerService.Services;
@@ -25,20 +27,21 @@ namespace TextumReader.TranslationsCollectorWorkerService
             var config = builder.Build();
 
             Log.Logger = new LoggerConfiguration()
-                .Enrich.WithMachineName()
-                .Enrich.WithEnvironmentName()
-                .Enrich.WithThreadId()
-                .Enrich.WithThreadName()
-                .Enrich.WithProcessName()
-                .Enrich.WithProcessId()
-                .Enrich.FromLogContext()
-                //.WriteTo.Seq("http://localhost:5341", LogEventLevel.Debug, 1000, null, "O09szsLe4sMkpUgGqkyU")
-                .ReadFrom.Configuration(config)
                 .CreateLogger();
 
-            Log.Logger.Information("Application Starting");
-
-            CreateHostBuilder(args, config).Build().Run();
+            try
+            {
+                Log.Logger.Information("Application Starting");
+                CreateHostBuilder(args, config).Build().Run();
+            }
+            catch (Exception e)
+            {
+                Log.Fatal("Application failed to start {ex}", e);
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args, IConfiguration config)
@@ -63,7 +66,8 @@ namespace TextumReader.TranslationsCollectorWorkerService
                             SerializerOptions = new CosmosSerializationOptions
                             {
                                 PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-                            }
+                            },
+                            AllowBulkExecution = true
                         });
 
                     services.AddSingleton<ITranslationEventHandler, SelenuimTranslationEventHandler>();
@@ -74,7 +78,6 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                     services.AddHostedService<GoogleTranslateScraperWorker>();
                     services.AddApplicationInsightsTelemetryWorkerService();
-
                     services.Configure<HostOptions>(
                         opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));
                 })
@@ -82,7 +85,22 @@ namespace TextumReader.TranslationsCollectorWorkerService
                 .UseSerilog((context, provider, loggerConfig) =>
                 {
                     loggerConfig
-                        .WriteTo.File("log.txt", LogEventLevel.Debug)
+                        .Enrich.WithMachineName()
+                        .Enrich.WithEnvironmentName()
+                        .Enrich.WithThreadId()
+                        .Enrich.WithThreadName()
+                        .Enrich.WithProcessName()
+                        .Enrich.WithProcessId()
+                        .Enrich.WithExceptionDetails()
+                        .Enrich.FromLogContext()
+                        .WriteTo.Async(a => a.File("logs/log.txt", LogEventLevel.Verbose, rollingInterval: RollingInterval.Day))
+                        .WriteTo.Seq("http://localhost:5341")
+                        /*.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
+                        {
+                            AutoRegisterTemplate = true,
+                            AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv6,
+                            IndexAliases =  new string[] {"TranslationsCollector"}
+                        })*/
                         .WriteTo.ApplicationInsights(provider.GetRequiredService<TelemetryConfiguration>(),
                             TelemetryConverter.Traces);
                 });

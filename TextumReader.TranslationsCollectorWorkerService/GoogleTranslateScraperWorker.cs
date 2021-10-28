@@ -12,6 +12,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
 using SerilogTimings;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
@@ -49,8 +50,6 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation(_config.GetValue<int>("MaxMessages").ToString());
-
             _maxMessages = _config.GetValue<int>("MaxMessages");
 
             try
@@ -65,15 +64,17 @@ namespace TextumReader.TranslationsCollectorWorkerService
                 {
                     _currentTasks = msgs.Select(message => ProcessMessage(message, stoppingToken)).ToList();
 
+                    _logger.LogInformation("Waiting for {count} tasks", _currentTasks.Count);
+
                     await Task.WhenAll(_currentTasks);
 
                     _logger.LogInformation("Finished waiting for {count} tasks", _currentTasks.Count);
 
-                    /*var chromeDriverProcesses = Process.GetProcessesByName("chromedriver");
+                    var chromeDriverProcesses = Process.GetProcessesByName("chromedriver");
 
                     Parallel.ForEach(chromeDriverProcesses, process =>
                     {
-                        _logger.LogError("Killing chromedriver process {id}", process.Id);
+                        _logger.LogError("Killing chromedriver process");
                         process.Kill(false);
                     });
 
@@ -81,9 +82,9 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                     Parallel.ForEach(chromeProcesses, process =>
                     {
-                        _logger.LogError("Killing chrome process {id}", process.Id);
+                        _logger.LogError("Killing chrome process");
                         process.Kill(false);
-                    });*/
+                    });
 
                     msgs = await CollectMessages(stoppingToken);
 
@@ -97,18 +98,21 @@ namespace TextumReader.TranslationsCollectorWorkerService
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unknown error occurred in one of tasks");
+                _logger.LogCritical(e, "Unknown error occurred in one of tasks");
                 _telemetryClient.TrackException(e);
                 Console.WriteLine("Program crashed");
                 Console.WriteLine(e.ToString());
-                throw;
             }
         }
 
         private async Task<List<ServiceBusReceivedMessage>> CollectMessages(CancellationToken stoppingToken)
         {
-            using var time = Operation.Time("GoogleTranslateScraperWorker.CollectMessages");
+            using var prop = LogContext.PushProperty("OperationName", nameof(CollectMessages));
 
+            _logger.LogInformation("Started GoogleTranslateScraperWorker.CollectMessages");
+
+            using var time = Operation.Begin("GoogleTranslateScraperWorker.CollectMessages");
+            
             var msgs = (await _receiver.ReceiveMessagesAsync(_maxMessages, TimeSpan.FromSeconds(3), stoppingToken)).ToList();
 
             _logger.LogInformation("Received messages: {count}", msgs.Count);
@@ -125,15 +129,21 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
             _logger.LogInformation("Received messages: {count} total", msgs.Count);
 
+            _logger.LogInformation("Finished GoogleTranslateScraperWorker.CollectMessages");
+
+            time.Complete();
+
             return msgs;
         }
 
         private async Task ProcessMessage(ServiceBusReceivedMessage message, CancellationToken stoppingToken)
         {
-            _logger.LogInformation("ProcessMessage started for {id}", message.MessageId);
+            _logger.LogInformation("ProcessMessage started", message.MessageId);
 
-            using var op = _telemetryClient.StartOperation<RequestTelemetry>("Translations scraping");
-            using var time = Operation.Time("GoogleTranslateScraperWorker.ProcessMessage");
+            using var op = _telemetryClient.StartOperation<RequestTelemetry>("GoogleTranslateScraperWorker.ProcessMessage");
+            using var timeOp = Operation.Begin("GoogleTranslateScraperWorker.ProcessMessage");
+
+            timeOp.EnrichWith("OperationName", nameof(ProcessMessage));
 
             try
             {
@@ -147,19 +157,21 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                 var translationEntities = await _translationEventHandler.Handle(message, stoppingToken);
 
+                await _receiver.RenewMessageLockAsync(message, stoppingToken);
+
                 await SaveTranslations(translationEntities);
 
                 _logger.LogInformation("SaveTranslations complete for message {id}", message.MessageId);
 
                 await _receiver.CompleteMessageAsync(message, stoppingToken);
 
-                _logger.LogInformation("ProcessMessage complete for {id}", message.MessageId);
+                _logger.LogInformation("GoogleTranslateScraperWorker.ProcessMessage completed successfully");
 
                 op.Telemetry.Success = true;
             }
             catch (CompromisedException e)
             {
-                await _receiver.AbandonMessageAsync(message);
+                await _receiver.AbandonMessageAsync(message, cancellationToken: stoppingToken);
                 _telemetryClient.TrackException(e);
                 _logger.LogError(e, "IP is compromised");
                 op.Telemetry.Success = false;
@@ -172,11 +184,14 @@ namespace TextumReader.TranslationsCollectorWorkerService
             }
             catch (Exception ex)
             {
-                await _receiver.AbandonMessageAsync(message);
                 _logger.LogError(ex, "Unknown error occurred");
                 _telemetryClient.TrackException(ex);
                 op.Telemetry.Success = false;
             }
+
+            timeOp.Complete();
+
+            _logger.LogInformation("ProcessMessage complete", message.MessageId);
         }
 
         public override async Task StopAsync(CancellationToken stoppingToken)
@@ -187,24 +202,29 @@ namespace TextumReader.TranslationsCollectorWorkerService
             await Task.WhenAll(_currentTasks);
         }
 
-        private async Task SaveTranslations(List<TranslationEntity> translationEntities)
+        private async Task SaveTranslations(IEnumerable<TranslationEntity> translationEntities)
         {
+            using var prop = LogContext.PushProperty("OperationName", nameof(SaveTranslations));
             using var time = Operation.Time("GoogleTranslateScraperWorker.SaveTranslations");
 
             using (_telemetryClient.StartOperation<DependencyTelemetry>("SaveTranslations"))
             {
                 var container = _cosmosClient.GetContainer("TextumDB", "translations");
-                foreach (var translationEntity in translationEntities)
+
+                try
                 {
-                    try
+                    var concurrentTasks = new List<Task>();
+                    foreach (var translationEntity in translationEntities)
                     {
-                        await container.CreateItemAsync(translationEntity);
+                        concurrentTasks.Add(container.CreateItemAsync(translationEntity, new PartitionKey(translationEntity.Id)));
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogInformation(ex, "Error occurred");
-                        _telemetryClient.TrackException(ex);
-                    }
+                
+                    await Task.WhenAll(concurrentTasks);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred");
+                    _telemetryClient.TrackException(ex);
                 }
             }
         }
