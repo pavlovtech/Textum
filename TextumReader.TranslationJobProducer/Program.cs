@@ -14,7 +14,7 @@ namespace TextumReader.TranslationJobProducer
 
     class Program
     {
-        static string connectionString = "Endpoint=sb://textum-service-bus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=plILlKunrYGfN0jCGBpCh9W3Fo2EgSz9NGMUmoPxlIQ=";
+        static string connectionString = "Endpoint=sb://textum.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Ov8isE9gIz9yd/uM0MSW3Dw4X3fVTGFNbBntx2wlqzw=";
         static string queueName = "words-queue";
 
         static async Task Main(string[] args)
