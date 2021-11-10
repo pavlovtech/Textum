@@ -79,7 +79,7 @@ namespace TextumReader.TranslationsCollectorWorkerService
                     services.AddHostedService<GoogleTranslateScraperWorker>();
                     services.AddApplicationInsightsTelemetryWorkerService();
                     services.Configure<HostOptions>(
-                        opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));
+                        opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(20));
                 })
                 .UseConsoleLifetime()
                 .UseSerilog((context, provider, loggerConfig) =>

@@ -18,7 +18,6 @@ using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
-using Serilog.Context;
 using SerilogTimings;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
@@ -244,7 +243,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             {
                 if (element.Text == "I agree")
                 {
-                    _logger.LogError("IP is compromised {chromeOptions.Proxy.HttpProxy}", chromeOptions.Proxy.HttpProxy);
+                    _logger.LogError("IP is compromised {proxy}", chromeOptions.Proxy.HttpProxy);
                     if (_config.GetValue<bool>("UseProxy"))
                     {
                         _proxyProvider.ExcludeProxy(chromeOptions.Proxy?.HttpProxy);
@@ -330,7 +329,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                     {
                         PartOfSpeech = currentPartOfSpeach,
                         Translation = t[1],
-                        Synonyms = t[2].Split(","),
+                        Synonyms = t[2].Split(",", StringSplitOptions.TrimEntries),
                         Frequency = t[3]
                     });
                 }
@@ -340,7 +339,7 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
                     {
                         PartOfSpeech = currentPartOfSpeach,
                         Translation = t[0],
-                        Synonyms = t[1].Split(","),
+                        Synonyms = t[1].Split(",", StringSplitOptions.TrimEntries),
                         Frequency = t[2]
                     });
             }
@@ -348,6 +347,8 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
             //_logger.LogInformation("Finished getting translations for {word}", word);
 
             processPageOperationTiming.Complete();
+
+            Interlocked.Increment(ref GoogleTranslateScraperWorker.ProcessedWordsCount);
 
             return new TranslationEntity
             {
@@ -366,7 +367,6 @@ namespace TextumReader.TranslationsCollectorWorkerService.EventHandlers
 
             operation.EnrichWith("OperationName", nameof(TryGetElement));
             operation.EnrichWith("By", @by.Criteria);
-
 
             try
             {

@@ -12,7 +12,10 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using Serilog.Context;
+using Serilog.Events;
+using SerilogMetrics;
 using SerilogTimings;
 using TextumReader.TranslationsCollectorWorkerService.Abstract;
 using TextumReader.TranslationsCollectorWorkerService.Exceptions;
@@ -30,6 +33,8 @@ namespace TextumReader.TranslationsCollectorWorkerService
         private readonly ITranslationEventHandler _translationEventHandler;
         private int _maxMessages;
         private List<Task> _currentTasks;
+
+        public static int ProcessedWordsCount;
 
         public GoogleTranslateScraperWorker(
             CosmosClient cosmosClient,
@@ -50,6 +55,12 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            KillRunningChromeProcesses();
+
+            var watch = Stopwatch.StartNew();
+
+            var gauge = Log.Logger.GaugeOperation("words per second", "words", () => Math.Round(ProcessedWordsCount / watch.Elapsed.TotalSeconds, 1));
+
             _maxMessages = _config.GetValue<int>("MaxMessages");
 
             try
@@ -70,23 +81,15 @@ namespace TextumReader.TranslationsCollectorWorkerService
 
                     _logger.LogInformation("Finished waiting for {count} tasks", _currentTasks.Count);
 
-                    var chromeDriverProcesses = Process.GetProcessesByName("chromedriver");
-
-                    Parallel.ForEach(chromeDriverProcesses, process =>
-                    {
-                        _logger.LogError("Killing chromedriver process");
-                        process.Kill(false);
-                    });
-
-                    var chromeProcesses = Process.GetProcessesByName("chrome");
-
-                    Parallel.ForEach(chromeProcesses, process =>
-                    {
-                        _logger.LogError("Killing chrome process");
-                        process.Kill(false);
-                    });
+                    KillRunningChromeProcesses();
 
                     msgs = await CollectMessages(stoppingToken);
+
+                    var wordsPerSec = ProcessedWordsCount / watch.Elapsed.TotalSeconds;
+
+                    _logger.LogInformation("Words per second: {wordsPerSec}", Math.Round(wordsPerSec, 1));
+
+                    gauge.Write();
 
                     Console.Clear();
                 }
@@ -103,6 +106,27 @@ namespace TextumReader.TranslationsCollectorWorkerService
                 Console.WriteLine("Program crashed");
                 Console.WriteLine(e.ToString());
             }
+
+            watch.Stop();
+        }
+
+        private void KillRunningChromeProcesses()
+        {
+            var chromeDriverProcesses = Process.GetProcessesByName("chromedriver");
+
+            Parallel.ForEach(chromeDriverProcesses, process =>
+            {
+                _logger.LogError("Killing chromedriver process");
+                process.Kill(false);
+            });
+
+            var chromeProcesses = Process.GetProcessesByName("chrome");
+
+            Parallel.ForEach(chromeProcesses, process =>
+            {
+                _logger.LogError("Killing chrome process");
+                process.Kill(false);
+            });
         }
 
         private async Task<List<ServiceBusReceivedMessage>> CollectMessages(CancellationToken stoppingToken)
@@ -200,6 +224,8 @@ namespace TextumReader.TranslationsCollectorWorkerService
             await base.StopAsync(stoppingToken);
 
             await Task.WhenAll(_currentTasks);
+
+            KillRunningChromeProcesses();
         }
 
         private async Task SaveTranslations(IEnumerable<TranslationEntity> translationEntities)
