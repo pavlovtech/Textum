@@ -24,25 +24,38 @@ namespace TextumReader.TranslationJobProducer
             string filePath = args[2];
 
             int batchSize = 30;
-            var source = (await File.ReadAllLinesAsync(filePath)).Batch(batchSize);
+            var source = (await File.ReadAllLinesAsync(filePath)).Batch(batchSize).ToList();
 
             // create a Service Bus client 
             await using var client = new ServiceBusClient(connectionString);
             // create a sender for the queue 
             ServiceBusSender sender = client.CreateSender(queueName);
 
-            foreach (var words in source)
+            var messages = source.Select(words =>
             {
                 var req = new TranslationRequest(from, to, words);
 
                 // create a message that we can send
                 var jsonReq = JsonConvert.SerializeObject(req);
-                var message = new ServiceBusMessage(jsonReq);
+                return new ServiceBusMessage(jsonReq);
+            }).Batch(400);
+
+            foreach (var msgPortion in messages)
+            {
+                using var messageBatch = await sender.CreateMessageBatchAsync();
+
+                foreach (var serviceBusMessage in msgPortion)
+                {
+                    // try adding a message to the batch
+                    if (!messageBatch.TryAddMessage(serviceBusMessage))
+                    {
+                        // if it is too large for the batch
+                        throw new Exception($"The message is too large to fit in the batch.");
+                    }
+                }
 
                 // send the message
-                await sender.SendMessageAsync(message);
-
-                Console.WriteLine($"Sent message: {jsonReq}");
+                await sender.SendMessagesAsync(messageBatch);
             }
 
             Console.WriteLine($"Done");
